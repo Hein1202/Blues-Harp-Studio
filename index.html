@@ -72,20 +72,6 @@
         .note-draw { color: #dc2626; } 
         .note-bend { color: #d97706; font-size: 0.75rem; font-style: italic; font-weight: 700; line-height: 1.1; }
 
-        .harp-hole.finder-hit-hole { box-shadow: inset 0 0 0 2px rgba(236, 72, 153, 0.35); }
-        .finder-hit-blow, .finder-hit-draw, .finder-hit-bend {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1px 6px;
-            border-radius: 999px;
-            border: 2px solid transparent;
-            line-height: 1.1;
-        }
-        .finder-hit-blow { background: #dbeafe; border-color: #60a5fa; }
-        .finder-hit-draw { background: #fee2e2; border-color: #f87171; }
-        .finder-hit-bend { background: #fef3c7; border-color: #f59e0b; }
-
         .tab-node { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 60px; margin: 0 8px; transition: transform 0.2s ease; }
         .tab-node.playing { transform: scale(1.3); filter: drop-shadow(0 0 12px rgba(37, 99, 235, 0.5)); }
 
@@ -179,36 +165,82 @@
         .finder-result:hover { transform: scale(1.05); border-color: #ec4899; }
         .finder-result.best { background: #ec4899; color: white; border-color: #db2777; font-weight: bold; }
 
-        .utility-btn {
+
+        .input-help-box {
+            background: #f8fafc;
+            border: 3px solid #e2e8f0;
+            border-radius: 14px;
+            margin: 0 0 1.5rem 0;
+            overflow: hidden;
+        }
+        .input-help-box summary {
+            list-style: none;
+            cursor: pointer;
+            user-select: none;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: #334155;
+        }
+        .input-help-box summary::-webkit-details-marker { display: none; }
+        .input-help-title { display: inline-flex; align-items: center; gap: 10px; }
+        .input-help-icon {
+            width: 26px;
+            height: 26px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 10px 16px;
-            border-radius: 12px;
-            border: 2px solid #cbd5e1;
-            background: white;
-            color: #334155;
-            font-size: 0.72rem;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #1d4ed8;
             font-weight: 900;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+            letter-spacing: 0;
         }
-        .utility-btn:hover { border-color: #94a3b8; color: #0f172a; transform: translateY(-1px); }
-        .save-status {
-            min-width: 120px;
-            text-align: center;
-            font-size: 0.68rem;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+        .input-help-arrow { font-size: 1rem; transition: transform 0.2s ease; color: #64748b; }
+        .input-help-box[open] .input-help-arrow { transform: rotate(180deg); }
+        .input-help-content {
+            border-top: 2px solid #e2e8f0;
+            padding: 18px 20px 20px;
+            font-size: 0.86rem;
             color: #475569;
+            line-height: 1.55;
+        }
+        .input-help-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .input-help-item {
             background: #ffffff;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
-            padding: 10px 12px;
+            padding: 12px 14px;
+        }
+        .input-help-label {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 900;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 5px;
+        }
+        .input-help-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .input-help-note {
+            margin-top: 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #64748b;
         }
 
         @media print { .no-print { display: none !important; } .line-row { border: none; border-bottom: 2px solid #eee; padding-left: 0; } }
@@ -217,11 +249,11 @@
 <body class="p-4 md:p-8 max-w-5xl mx-auto">
 
     <header class="mb-6 no-print flex justify-between items-center">
-        <div class="flex items-center gap-3">
+        <div>
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
-            <span id="app-version-badge" class="text-[10px] font-black text-slate-700 bg-slate-100 px-3 py-1.5 border-2 border-slate-200 rounded-xl tracking-widest uppercase">v7</span>
         </div>
         <div class="flex gap-4 items-center">
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 177 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -236,35 +268,19 @@
             Harp-Finder: Passende Mundharmonika finden
         </h2>
         <div class="flex flex-col md:flex-row gap-4 mb-4">
-            <div class="flex-1 flex flex-col sm:flex-row gap-3">
-                <input type="text" id="finder-input" oninput="findBestHarp(); setSaveStatus('Nicht gespeichert')" placeholder="Gib die Melodie ein (z.B. G A H C,)..." class="flex-1 p-3 rounded-xl border-2 border-pink-200 outline-none focus:border-pink-500 font-mono text-sm shadow-inner uppercase">
-                <select id="finder-position" onchange="findBestHarp(); rebuildAll(); setSaveStatus('Nicht gespeichert')" class="sm:w-[175px] p-3 rounded-xl border-2 border-pink-200 outline-none focus:border-pink-500 font-bold text-sm bg-white">
-                    <option value="auto" selected>Position: Auto</option>
-                    <option value="pos1">1. Position</option>
-                    <option value="pos2">2. Position</option>
-                </select>
-                <select id="finder-octave-mode" onchange="findBestHarp(); rebuildAll(); setSaveStatus('Nicht gespeichert')" class="sm:w-[175px] p-3 rounded-xl border-2 border-pink-200 outline-none focus:border-pink-500 font-bold text-sm bg-white">
-                    <option value="auto" selected>Oktavlage: Auto</option>
-                    <option value="original">Original</option>
-                    <option value="plus1">+1 Oktave</option>
-                </select>
-            </div>
+            <input type="text" id="finder-input" oninput="findBestHarp()" placeholder="Gib die Melodie ein (z.B. G A H Bb C#)..." class="flex-1 p-3 rounded-xl border-2 border-pink-200 outline-none focus:border-pink-500 font-mono text-sm shadow-inner uppercase">
             <div id="finder-results" class="flex flex-wrap items-center">
                 <span class="text-[10px] font-bold text-pink-400 italic">Hier erscheinen Vorschläge...</span>
             </div>
         </div>
-        <p class="text-[10px] text-pink-500 font-medium">Das Programm berechnet, auf welcher Harp die Töne am einfachsten spielbar sind. Über die Positions-Auswahl kannst du gezielt Auto, 1. oder 2. Position bevorzugen. Mit der Oktavlage kannst du die Bewertung zusätzlich auf Original oder +1 Oktave verschieben. Ein Komma direkt hinter der Note bedeutet eine Oktave tiefer, z. B. C,.</p>
+        <p class="text-[10px] text-pink-500 font-medium">Das Programm berechnet, auf welcher Harp die Töne am einfachsten (ohne komplexe Bends) spielbar sind. Deutsche Schreibweise: H = engl. B, Bb/B = B-flat.</p>
     </div>
 
     <div id="harp-visual" class="harp-map no-print"></div>
 
     <div class="controls-bar no-print">
-        <div class="flex items-center gap-4 flex-wrap">
+        <div class="flex items-center gap-6">
             <button id="master-play" onclick="playAllRows()" class="bg-slate-800 hover:bg-black text-white px-8 py-3.5 rounded-xl font-black text-sm transition-all shadow-md active:scale-95">▶ Song abspielen</button>
-            <button type="button" onclick="saveProjectState()" class="utility-btn">Speichern</button>
-            <button type="button" onclick="document.getElementById('state-file-input').click()" class="utility-btn">Laden</button>
-            <span id="save-status" class="save-status">Nicht gespeichert</span>
-            <input type="file" id="state-file-input" class="hidden" accept="application/json,.json" onchange="loadProjectState(event)">
             
             <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border-2 border-slate-200">
                 <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Oktave -1</span>
@@ -277,7 +293,7 @@
         <div class="flex flex-wrap gap-8 items-center">
             <div class="flex items-center gap-4">
                 <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Harp-Key:</span>
-                <select id="key-select" onchange="rebuildAll(); setSaveStatus('Nicht gespeichert')" class="bg-white border-2 border-slate-300 px-4 py-2 rounded-lg font-bold outline-none focus:border-blue-500">
+                <select id="key-select" onchange="rebuildAll()" class="bg-white border-2 border-slate-300 px-4 py-2 rounded-lg font-bold outline-none focus:border-blue-500">
                     <option value="C" selected>C</option>
                     <option value="D">D</option>
                     <option value="E">E</option>
@@ -290,7 +306,7 @@
             </div>
             <div class="flex items-center gap-4">
                 <span class="text-[11px] font-black uppercase text-slate-500 tracking-widest">Tempo:</span>
-                <select id="speed-select" onchange="setSaveStatus('Nicht gespeichert')" class="bg-white border-2 border-slate-300 px-4 py-2 rounded-lg font-bold outline-none focus:border-blue-500">
+                <select id="speed-select" class="bg-white border-2 border-slate-300 px-4 py-2 rounded-lg font-bold outline-none focus:border-blue-500">
                     <option value="1200">Langsam</option>
                     <option value="800" selected>Normal</option>
                     <option value="500">Schnell</option>
@@ -299,13 +315,54 @@
         </div>
     </div>
 
+
+    <details class="input-help-box no-print">
+        <summary>
+            <span class="input-help-title"><span class="input-help-icon">i</span> Eingabehilfe anzeigen</span>
+            <span class="input-help-arrow">⌄</span>
+        </summary>
+        <div class="input-help-content">
+            <div class="input-help-grid">
+                <div class="input-help-item">
+                    <span class="input-help-label">Normale Noten</span>
+                    <span class="input-help-code">C D E F G A H C</span>
+                </div>
+                <div class="input-help-item">
+                    <span class="input-help-label">Halbtöne / Bb</span>
+                    <span class="input-help-code">C# D# F# Bb A# H</span>
+                </div>
+                <div class="input-help-item">
+                    <span class="input-help-label">Höhere Lage</span>
+                    <span class="input-help-code">D+</span> = nächsthöheres D<br>
+                    <span class="input-help-code">A+</span> = nächsthöheres A
+                </div>
+                <div class="input-help-item">
+                    <span class="input-help-label">Tiefere Lage</span>
+                    <span class="input-help-code">D-</span> = nächsttieferes D<br>
+                    <span class="input-help-code">A-</span> = nächsttieferes A
+                </div>
+                <div class="input-help-item">
+                    <span class="input-help-label">Abstand</span>
+                    Mehrere Leerzeichen erzeugen eine optische Trennung.
+                </div>
+                <div class="input-help-item">
+                    <span class="input-help-label">Wiederholung</span>
+                    <span class="input-help-code">2X</span>, <span class="input-help-code">3X</span>, <span class="input-help-code">4X</span> wiederholt den vorherigen Abschnitt.
+                </div>
+            </div>
+            <div class="input-help-note">
+                Beispiel: <span class="input-help-code">D D D&nbsp;&nbsp;&nbsp;A A+ G</span> · Deutsche Schreibweise: <span class="input-help-code">H</span> bleibt H, <span class="input-help-code">Bb</span>/<span class="input-help-code">B</span>/<span class="input-help-code">A#</span> steht für B-flat.
+            </div>
+        </div>
+    </details>
+
     <div id="editor">
         <div class="line-row" id="row-1">
             <div class="play-row-btn no-print absolute left-[-55px] top-6 cursor-pointer text-slate-300 hover:text-blue-600 transition-colors" onclick="playRow(1)">
                 <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </div>
             <div class="mb-6">
-                <input type="text" class="input-field no-print" placeholder="Noten oder Tabs eingeben (z.B. C D E | C, = tiefer | 4+ 4- 3-')..." oninput="updateView(this, 1); setSaveStatus('Nicht gespeichert')">
+                <input type="text" class="input-field no-print" placeholder="Notennamen eingeben (z.B. C D E F G, D+ höher, D- tiefer)..." oninput="updateView(this, 1)">
             </div>
             <div class="display flex flex-wrap items-center mt-4 min-h-[90px]"></div>
         </div>
@@ -341,191 +398,87 @@
 
         const notesCircular = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"];
         const keysToTest = ["C", "D", "E", "F", "G", "A", "Bb", "H"];
-        const canonicalNoteMap = {
-            "C": "C", "C#": "C#", "DB": "C#",
-            "D": "D", "D#": "D#", "EB": "D#",
-            "E": "E",
-            "F": "F", "F#": "F#", "GB": "F#",
-            "G": "G", "G#": "G#", "AB": "G#",
-            "A": "A", "A#": "Bb",
-            "BB": "Bb", "B": "H", "H": "H"
+
+
+        // Einheitliche Notenlogik für deutsche Schreibweise:
+        // H = engl. B natural, B oder Bb = B-flat. A# wird ebenfalls als Bb behandelt.
+        const flatToSharp = {
+            "AB": "G#", "DB": "C#", "EB": "D#", "GB": "F#",
+            "CB": "H", "FB": "E"
         };
 
-        function normalizeNoteToken(token) {
-            return canonicalNoteMap[token.toUpperCase()] || null;
+        function normalizeInputNote(raw) {
+            if (!raw) return null;
+            let note = raw.toUpperCase().replace('♭', 'B');
+            if (note === "H") return "H";
+            if (note === "B" || note === "BB" || note === "A#") return "Bb";
+            if (flatToSharp[note]) return flatToSharp[note];
+            if (notesCircular.includes(note)) return note;
+            return null;
         }
 
-        function parseNoteTokenAt(text, startIndex) {
-            const currentChar = (text[startIndex] || '').toUpperCase();
-            if (currentChar < 'A' || currentChar > 'H') return null;
+        function readNoteAt(text, index) {
+            const c = text[index];
+            if (!c || !/[A-HB]/.test(c)) return null;
+            let raw = c;
+            let end = index + 1;
 
-            let endIndex = startIndex;
-            let token = currentChar;
-            const next = (text[endIndex + 1] || '').toUpperCase();
-            if (next === '#' || next === 'B') {
-                token += next;
-                endIndex++;
+            if (c === 'B') {
+                if (text[index + 1] === 'B') end++;
+            } else if (text[index + 1] === '#' || text[index + 1] === 'B') {
+                raw += text[index + 1];
+                end++;
             }
 
-            let octaveShift = 0;
-            while ((text[endIndex + 1] || '') === ',') {
-                octaveShift--;
-                endIndex++;
+            const note = normalizeInputNote(text.slice(index, end));
+            if (!note) return null;
+
+            let direction = 'auto';
+            if (text[end] === '+' || text[end] === '-') {
+                direction = text[end] === '+' ? 'higher' : 'lower';
+                end++;
             }
 
-            const normalized = normalizeNoteToken(token);
-            if (!normalized) return null;
-
-            return {
-                note: normalized,
-                octaveShift,
-                nextIndex: endIndex,
-                displayText: normalized + (octaveShift < 0 ? ','.repeat(Math.abs(octaveShift)) : '')
-            };
+            return { note, direction, end };
         }
 
-        function parseTabTokenAt(text, startIndex, harpData) {
-            const match = text.slice(startIndex).match(/^((10|[1-9]))\s*([+\-]|[bBdDzZ])\s*('{0,3})/);
-            if (!match) return null;
+        function chooseBestMatch(matches, lastHole, direction, referenceFreq) {
+            if (!matches.length) return null;
+            const byPitchUp = [...matches].sort((a, b) => a.f - b.f || a.h - b.h);
+            const byPitchDown = [...matches].sort((a, b) => b.f - a.f || a.h - b.h);
 
-            const holeNumber = parseInt(match[1], 10);
-            const modeRaw = match[3];
-            const bendCount = match[4].length;
-            const holeData = harpData.find(h => h.h === holeNumber);
-            if (!holeData) return null;
-
-            const isBlow = modeRaw === '+' || modeRaw === 'b' || modeRaw === 'B';
-            const normalizedMode = isBlow ? 'b' : 'd';
-            let note = '';
-            let freq = 0;
-            let mode = normalizedMode;
-            let sub = '';
-
-            if (bendCount === 0) {
-                note = isBlow ? holeData.b : holeData.d;
-                freq = isBlow ? holeData.f_b : holeData.f_d;
-            } else {
-                const bendPool = holeData.bends.filter(b => b.t === (isBlow ? 'bb' : 'db'));
-                if (bendPool.length < bendCount) return null;
-                const bend = bendPool[bendCount - 1];
-                note = bend.n;
-                freq = bend.f;
-                mode = 'bend';
-                sub = bend.t;
+            if (direction === 'higher') {
+                const higher = byPitchUp.filter(m => referenceFreq === null || m.f > referenceFreq + 0.001);
+                if (higher.length) return higher[0];
+                return byPitchUp[byPitchUp.length - 1];
             }
 
-            const displayMode = isBlow ? '+' : '-';
-            return {
-                source: 'tab',
-                note,
-                hole: holeNumber,
-                freq,
-                mode,
-                sub,
-                nextIndex: startIndex + match[0].length - 1,
-                displayText: `${holeNumber}${displayMode}${"'".repeat(bendCount)}`
-            };
-        }
+            if (direction === 'lower') {
+                const lower = byPitchDown.filter(m => referenceFreq === null || m.f < referenceFreq - 0.001);
+                if (lower.length) return lower[0];
+                return byPitchUp[0];
+            }
 
-        function createDisplayNode(label, match) {
-            const node = document.createElement('div');
-            node.className = 'tab-node';
-            node.dataset.type = 'note';
-            node.dataset.freq = match.f;
-            node.dataset.hole = match.h;
-            node.dataset.mode = match.t;
-
-            let symbol = match.t === 'b' ? '↑' : '↓';
-            if (match.t === 'bend') symbol = match.sub === 'db' ? "↓'" : "↑'";
-
-            node.innerHTML = `
-                <span class="note-name">${label}</span>
-                <span class="channel">${match.h}</span>
-                <span class="arrow ${match.t}">${symbol}</span>
-            `;
-            return node;
+            return matches.reduce((p, c) => Math.abs(c.h - lastHole) < Math.abs(p.h - lastHole) ? c : p);
         }
 
         function extractNotes(text) {
             const notes = [];
             let i = 0;
-            while (i < text.length) {
-                const parsed = parseNoteTokenAt(text, i);
-                if (parsed) {
-                    notes.push(parsed.note);
-                    i = parsed.nextIndex;
+            const upper = text.toUpperCase().replace(/♭/g, 'B');
+            while (i < upper.length) {
+                const found = readNoteAt(upper, i);
+                if (found && found.note) {
+                    notes.push(found.note);
+                    i = found.end;
+                } else {
+                    i++;
                 }
-                i++;
             }
             return notes;
         }
 
-        function getMatchTypeForScoring(match) {
-            if (match.t === 'b') return { type: 'blow', bendType: '' };
-            if (match.t === 'd') return { type: 'draw', bendType: '' };
-            return { type: 'bend', bendType: match.sub || '' };
-        }
-
-        function getDisplayCandidateScore(match, lastHole, positionMode, preferredOctaveMode, octaveShift = 0) {
-            const matchType = getMatchTypeForScoring(match);
-            let score = getFinderCandidateScore(match.h, matchType.type, positionMode, matchType.bendType);
-
-            if (octaveShift < 0) {
-                score += Math.max(0, 12 - match.f / 50);
-            } else if (preferredOctaveMode === 'plus1') {
-                score += match.f / 100;
-            } else if (preferredOctaveMode === 'original') {
-                score -= Math.max(0, match.h - 7) * 1.5;
-            }
-
-            score -= Math.abs(match.h - lastHole) * 0.35;
-            return score;
-        }
-
-        function chooseBestMatch(matches, lastHole, octaveShift = 0, preferredOctaveMode = 'auto', positionMode = 'auto') {
-            if (matches.length === 0) return null;
-
-            let candidatePool = matches.slice();
-
-            const pickBestByScore = (pool, scoreOctaveShift = octaveShift, scoreOctaveMode = preferredOctaveMode) => {
-                return pool.reduce((best, current) => {
-                    const currentScore = getDisplayCandidateScore(current, lastHole, positionMode, scoreOctaveMode, scoreOctaveShift);
-                    const bestScore = getDisplayCandidateScore(best, lastHole, positionMode, scoreOctaveMode, scoreOctaveShift);
-
-                    if (currentScore !== bestScore) {
-                        return currentScore > bestScore ? current : best;
-                    }
-
-                    if (scoreOctaveMode === 'plus1' && current.f !== best.f) {
-                        return current.f > best.f ? current : best;
-                    }
-
-                    if (scoreOctaveShift < 0 && current.f !== best.f) {
-                        return current.f < best.f ? current : best;
-                    }
-
-                    return Math.abs(current.h - lastHole) < Math.abs(best.h - lastHole) ? current : best;
-                });
-            };
-
-            if (octaveShift < 0) {
-                const referenceBest = pickBestByScore(matches, 0, preferredOctaveMode === 'plus1' ? 'auto' : preferredOctaveMode);
-                const sortedByFreq = matches.slice().sort((a, b) => a.f - b.f);
-                let referenceIndex = sortedByFreq.findIndex(match => match === referenceBest);
-                if (referenceIndex === -1) referenceIndex = sortedByFreq.length - 1;
-                const targetIndex = Math.max(0, referenceIndex + octaveShift);
-                const targetFreq = sortedByFreq[targetIndex].f;
-                candidatePool = matches.filter(match => Math.abs(match.f - targetFreq) < 0.01);
-            } else if (preferredOctaveMode === 'plus1') {
-                const maxFreq = Math.max(...matches.map(match => match.f));
-                candidatePool = matches.filter(match => match.f >= maxFreq * 0.75);
-            }
-
-            return pickBestByScore(candidatePool);
-        }
-
         function toggleLowOctave() {
-            setSaveStatus('Nicht gespeichert');
             isLowOctave = !isLowOctave;
             const btn = document.getElementById('octave-toggle');
             if(isLowOctave) btn.classList.add('active');
@@ -564,162 +517,38 @@
         }
 
         // --- HARP FINDER LOGIK ---
-        function getFinderPositionMode() {
-            const select = document.getElementById('finder-position');
-            return select ? select.value : 'auto';
-        }
-
-        function getFinderOctaveMode() {
-            const select = document.getElementById('finder-octave-mode');
-            return select ? select.value : 'auto';
-        }
-
-        function getRangeBonus(hole, positionMode, octaveMode) {
-            if (positionMode === 'pos2') {
-                if (octaveMode === 'plus1') {
-                    if (hole >= 4 && hole <= 6) return 5;
-                    if (hole === 7 || hole === 8) return 4;
-                    if (hole === 3 || hole === 9) return 1;
-                    if (hole === 2) return -2;
-                    return -5;
-                }
-
-                if (octaveMode === 'original') {
-                    if (hole >= 2 && hole <= 4) return 5;
-                    if (hole === 5 || hole === 6) return 4;
-                    if (hole === 7) return 1;
-                    if (hole === 1) return 0;
-                    if (hole === 8) return -2;
-                    if (hole === 9) return -4;
-                    return -5;
-                }
-
-                if (hole >= 4 && hole <= 6) return 5;
-                if (hole === 7) return 4;
-                if (hole === 3 || hole === 8) return 2;
-                if (hole === 2) return -1;
-                if (hole === 9) return -3;
-                return -5;
-            }
-
-            if (positionMode === 'pos1') {
-                if (octaveMode === 'plus1') {
-                    if (hole >= 5 && hole <= 7) return 5;
-                    if (hole === 4 || hole === 8) return 3;
-                    if (hole === 3 || hole === 9) return 0;
-                    return -4;
-                }
-
-                if (octaveMode === 'original') {
-                    if (hole >= 4 && hole <= 6) return 5;
-                    if (hole === 7) return 3;
-                    if (hole === 3 || hole === 8) return 1;
-                    if (hole === 2 || hole === 9) return -2;
-                    return -4;
-                }
-
-                if (hole >= 4 && hole <= 7) return 5;
-                if (hole === 3 || hole === 8) return 2;
-                if (hole === 2 || hole === 9) return -1;
-                return -4;
-            }
-
-            if (octaveMode === 'plus1') {
-                if (hole >= 5 && hole <= 7) return 5;
-                if (hole === 4 || hole === 8) return 3;
-                if (hole === 3 || hole === 9) return 0;
-                return -4;
-            }
-
-            if (octaveMode === 'original') {
-                if (hole >= 4 && hole <= 6) return 5;
-                if (hole === 7) return 2;
-                if (hole === 3) return 1;
-                if (hole === 8) return 0;
-                if (hole === 2 || hole === 9) return -2;
-                return -4;
-            }
-
-            if (hole >= 4 && hole <= 7) return 5;   // bevorzugte mittlere Lage
-            if (hole === 3 || hole === 8) return 2;
-            if (hole === 2 || hole === 9) return -1;
-            return -4; // Randlagen 1 und 10 klar abwerten
-        }
-
-        function getFinderCandidateScore(hole, type, positionMode, bendType = '') {
-            let baseScore = 6;
-
-            if (positionMode === 'pos2') {
-                if (type === 'draw') baseScore = 8;          // 2. Position: Draw-Töne bevorzugen
-                else if (type === 'blow') baseScore = 4;     // Blow-Töne bleiben möglich, aber schwächer
-                else if (bendType === 'db' && hole >= 2 && hole <= 4) baseScore = 1; // typische Draw-Bends weiterhin möglich
-                else baseScore = -3;                         // sonstige Bends deutlich abwerten
-            } else if (positionMode === 'pos1') {
-                baseScore = type === 'bend' ? -2 : 6;        // 1. Position möglichst ohne Bends
-            } else {
-                baseScore = type === 'bend' ? 0 : 6;         // Auto-Modus wie bisher, aber mit klarer Bend-Abwertung
-            }
-
-            return Math.max(0, baseScore + getRangeBonus(hole, positionMode, getFinderOctaveMode()));
-        }
-
-        function getMaxFinderPointsPerNote(positionMode) {
-            if (positionMode === 'pos2') return 13;
-            return 11;
-        }
-
-        function getFinderPositionLabel(positionMode) {
-            if (positionMode === 'pos1') return '1. Pos.';
-            if (positionMode === 'pos2') return '2. Pos.';
-            return 'Auto';
-        }
-
         function findBestHarp() {
-            const input = document.getElementById('finder-input').value;
+            const input = document.getElementById('finder-input').value.toUpperCase();
             const resultsDiv = document.getElementById('finder-results');
+            
+            // Töne extrahieren – Bb/B/H werden hier einheitlich behandelt.
             const notesToFind = extractNotes(input);
-            const positionMode = getFinderPositionMode();
-            const octaveMode = getFinderOctaveMode();
-            const maxPointsPerNote = getMaxFinderPointsPerNote(positionMode);
-
-            highlightFinderNotes();
 
             if (notesToFind.length === 0) {
                 resultsDiv.innerHTML = '<span class="text-[10px] font-bold text-pink-400 italic">Hier erscheinen Vorschläge...</span>';
                 return;
             }
 
+            // Scores berechnen
             const rankings = keysToTest.map(key => {
                 const data = getHarpData(key);
                 let score = 0;
-
                 notesToFind.forEach(target => {
-                    const candidates = [];
-
-                    data.forEach(h => {
-                        if (h.b === target) candidates.push(getFinderCandidateScore(h.h, 'blow', positionMode));
-                        if (h.d === target) candidates.push(getFinderCandidateScore(h.h, 'draw', positionMode));
-                        h.bends.forEach(b => {
-                            if (b.n === target) candidates.push(getFinderCandidateScore(h.h, 'bend', positionMode, b.t));
-                        });
-                    });
-
-                    if (candidates.length > 0) score += Math.max(...candidates);
+                    // Prüfe ob Ton als Blow oder Draw vorhanden (Score 2) oder als Bend (Score 1)
+                    let foundNormal = data.some(h => h.b === target || h.d === target);
+                    let foundBend = data.some(h => h.bends.some(b => b.n === target));
+                    if(foundNormal) score += 2;
+                    else if(foundBend) score += 1;
                 });
-
                 return { key, score };
             }).sort((a, b) => b.score - a.score);
 
             const maxScore = rankings[0].score;
-            const positionLabel = getFinderPositionLabel(positionMode);
-            const octaveLabel = octaveMode === 'plus1' ? '+1 Okt.' : (octaveMode === 'original' ? 'Orig.' : 'Auto');
 
             resultsDiv.innerHTML = rankings.slice(0, 4).map(r => `
                 <div class="finder-result ${r.score === maxScore && r.score > 0 ? 'best' : ''}" onclick="selectKey('${r.key}')">
                     <span class="text-xs mr-2 font-black">${r.key}</span>
-                    <span class="text-[9px] opacity-70 mr-2">${Math.round((r.score / (notesToFind.length * maxPointsPerNote)) * 100)}% Match</span>
-                    <span class="text-[9px] opacity-70 mr-2">${positionLabel}</span>
-                    <span class="text-[9px] opacity-70">${octaveLabel}</span>
+                    <span class="text-[9px] opacity-70">${Math.round((r.score / (notesToFind.length * 2)) * 100)}% Match</span>
                 </div>
             `).join('');
         }
@@ -727,7 +556,6 @@
         function selectKey(key) {
             document.getElementById('key-select').value = key;
             rebuildAll();
-            setSaveStatus('Nicht gespeichert');
         }
 
         function drawHarpMap() {
@@ -737,17 +565,18 @@
             document.getElementById('current-key-display').innerText = `${root}-HARP`;
             
             container.innerHTML = data.map(h => {
-                const bendsHtml = h.bends.map(b => `<span class="note-bend" data-note-role="bend" data-note-value="${b.n}">${b.n}</span>`).join('');
+                const displayBends = h.bends.slice(0, 2);
+                const bendsHtml = displayBends.map(b => `<span class="note-bend">${b.n}</span>`).join('');
                 
                 return `
                     <div class="harp-hole" id="vis-hole-${h.h}">
                         <div class="hole-top">
                             <span class="text-[9px] font-black text-slate-300 mb-0.5">↑</span>
-                            <span class="hole-note note-blow" data-note-role="blow" data-note-value="${h.b}">${h.b}</span>
+                            <span class="hole-note note-blow">${h.b}</span>
                         </div>
                         <div class="hole-number">${h.h}</div>
                         <div class="hole-bottom">
-                            <span class="hole-note note-draw" data-note-role="draw" data-note-value="${h.d}">${h.d}</span>
+                            <span class="hole-note note-draw">${h.d}</span>
                             <span class="text-[9px] font-black text-slate-300 mt-0.5">↓</span>
                         </div>
                         <div class="hole-bends-area">
@@ -756,137 +585,23 @@
                     </div>
                 `;
             }).join('');
-
-            highlightFinderNotes();
-        }
-
-        function highlightFinderNotes() {
-            const container = document.getElementById('harp-visual');
-            if (!container) return;
-
-            container.querySelectorAll('.finder-hit-hole').forEach(el => el.classList.remove('finder-hit-hole'));
-            container.querySelectorAll('.finder-hit-blow, .finder-hit-draw, .finder-hit-bend').forEach(el => {
-                el.classList.remove('finder-hit-blow', 'finder-hit-draw', 'finder-hit-bend');
-            });
-
-            const finderInput = document.getElementById('finder-input');
-            const notesToHighlight = finderInput ? extractNotes(finderInput.value) : [];
-            if (notesToHighlight.length === 0) return;
-
-            const noteSet = new Set(notesToHighlight);
-            container.querySelectorAll('[data-note-role][data-note-value]').forEach(el => {
-                if (!noteSet.has(el.dataset.noteValue)) return;
-
-                if (el.dataset.noteRole === 'blow') el.classList.add('finder-hit-blow');
-                else if (el.dataset.noteRole === 'draw') el.classList.add('finder-hit-draw');
-                else el.classList.add('finder-hit-bend');
-
-                const hole = el.closest('.harp-hole');
-                if (hole) hole.classList.add('finder-hit-hole');
-            });
         }
 
         let lineIdx = 1;
-
-        function createRowElement(index, value = '') {
+        function addRow() {
+            lineIdx++;
             const div = document.createElement('div');
             div.className = 'line-row';
-            div.id = `row-${index}`;
+            div.id = `row-${lineIdx}`;
             div.innerHTML = `
-                <div class="play-row-btn no-print absolute left-[-55px] top-6 cursor-pointer text-slate-300 hover:text-blue-600 transition-colors" onclick="playRow(${index})">
+                <div class="play-row-btn no-print absolute left-[-55px] top-6 cursor-pointer text-slate-300 hover:text-blue-600 transition-colors" onclick="playRow(${lineIdx})">
                     <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </div>
                 <div class="mb-6">
-                    <input type="text" class="input-field no-print" placeholder="... (C, = tiefer | 4+ 4- 3-' | auch 4 + 4 -)" oninput="updateView(this, ${index}); setSaveStatus('Nicht gespeichert')">
+                    <input type="text" class="input-field no-print" placeholder="... (D+ höher, D- tiefer)" oninput="updateView(this, ${lineIdx})">
                 </div>
                 <div class="display flex flex-wrap items-center mt-4 min-h-[90px]"></div>`;
-            div.querySelector('.input-field').value = value;
-            return div;
-        }
-
-        function addRow(value = '') {
-            lineIdx++;
-            const div = createRowElement(lineIdx, value);
             document.getElementById('editor').appendChild(div);
-            setSaveStatus('Nicht gespeichert');
-        }
-
-        function rebuildEditorRows(lines = ['']) {
-            const safeLines = Array.isArray(lines) && lines.length ? lines : [''];
-            const editor = document.getElementById('editor');
-            editor.innerHTML = '';
-            lineIdx = safeLines.length;
-            safeLines.forEach((lineValue, idx) => editor.appendChild(createRowElement(idx + 1, lineValue || '')));
-        }
-
-        function setSaveStatus(text) {
-            const badge = document.getElementById('save-status');
-            if (badge) badge.textContent = text;
-        }
-
-        function collectProjectState() {
-            return {
-                appVersion: 'v7',
-                savedAt: new Date().toISOString(),
-                harpKey: document.getElementById('key-select').value,
-                tempo: document.getElementById('speed-select').value,
-                isLowOctave,
-                finderInput: document.getElementById('finder-input').value,
-                finderPosition: getFinderPositionMode(),
-                finderOctaveMode: getFinderOctaveMode(),
-                lines: Array.from(document.querySelectorAll('.input-field')).map(input => input.value)
-            };
-        }
-
-        function saveProjectState() {
-            const state = collectProjectState();
-            const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `harp-projektstand_v7_${stamp}.json`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
-            setSaveStatus('Gespeichert');
-        }
-
-        function applyProjectState(state) {
-            if (!state || typeof state !== 'object') return;
-
-            document.getElementById('key-select').value = state.harpKey || 'C';
-            document.getElementById('speed-select').value = state.tempo || '800';
-            document.getElementById('finder-input').value = state.finderInput || '';
-            document.getElementById('finder-position').value = state.finderPosition || 'auto';
-            document.getElementById('finder-octave-mode').value = state.finderOctaveMode || 'auto';
-
-            isLowOctave = !!state.isLowOctave;
-            document.getElementById('octave-toggle').classList.toggle('active', isLowOctave);
-
-            rebuildEditorRows(state.lines);
-            rebuildAll();
-            findBestHarp();
-            setSaveStatus('Geladen');
-        }
-
-        function loadProjectState(event) {
-            const file = event.target.files && event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    const state = JSON.parse(e.target.result);
-                    applyProjectState(state);
-                } catch (error) {
-                    alert('Die Datei konnte nicht geladen werden.');
-                    setSaveStatus('Laden fehlgeschlagen');
-                }
-                event.target.value = '';
-            };
-            reader.readAsText(file, 'utf-8');
         }
 
         function rebuildAll() {
@@ -898,59 +613,58 @@
             const root = document.getElementById('key-select').value;
             const currentHarp = getHarpData(root);
             const container = document.querySelector(`#row-${id} .display`);
-            const text = input.value;
-            const preferredOctaveMode = getFinderOctaveMode();
-            const positionMode = getFinderPositionMode();
+            let text = input.value.toUpperCase().replace(/♭/g, 'B');
 
             container.innerHTML = '';
             let i = 0;
-            let lastHole = preferredOctaveMode === 'plus1' ? 6 : 4;
+            let lastHole = 4;
+            const lastFreqByNote = {};
 
             while (i < text.length) {
-                const currentChar = text[i];
-                if (currentChar === ' ') {
-                    container.innerHTML += '<div class="spacer"></div>';
-                    i++;
-                    continue;
-                }
-
-                const rep = text.slice(i).toUpperCase().match(/^(\d+X)/);
-                if (rep) {
-                    container.innerHTML += `<div class="repeat-box" data-type="repeat" data-count="${parseInt(rep[1])}">${rep[1]}</div>`;
-                    i += rep[1].length;
-                    continue;
-                }
-
-                const manualTab = parseTabTokenAt(text, i, currentHarp);
-                if (manualTab) {
-                    const manualMatch = { h: manualTab.hole, t: manualTab.mode, f: manualTab.freq, sub: manualTab.sub };
-                    lastHole = manualMatch.h;
-                    const node = createDisplayNode(manualTab.note, manualMatch);
-                    node.title = `${manualTab.displayText} = ${manualTab.note}`;
-                    container.appendChild(node);
-                    i = manualTab.nextIndex + 1;
-                    continue;
-                }
-
-                const parsed = parseNoteTokenAt(text, i);
-                if (!parsed) {
-                    i++;
-                    continue;
-                }
+                const c = text[i];
+                if (c === ' ') { container.innerHTML += '<div class="spacer"></div>'; i++; continue; }
+                const rep = text.slice(i).match(/^(\d+X)/);
+                if (rep) { container.innerHTML += `<div class="repeat-box" data-type="repeat" data-count="${parseInt(rep[1])}">${rep[1]}</div>`; i += rep[1].length; continue; }
+                
+                const found = readNoteAt(text, i);
+                if (!found || !found.note) { i++; continue; }
+                let note = found.note;
+                const direction = found.direction || 'auto';
+                i = found.end - 1;
 
                 const matches = [];
                 currentHarp.forEach(h => {
-                    if (h.b === parsed.note) matches.push({ h: h.h, t: 'b', n: parsed.note, f: h.f_b });
-                    if (h.d === parsed.note) matches.push({ h: h.h, t: 'd', n: parsed.note, f: h.f_d });
-                    h.bends.forEach(b => { if (b.n === parsed.note) matches.push({ h: h.h, t: 'bend', n: parsed.note, f: b.f, sub: b.t }); });
+                    if (h.b === note) matches.push({ h: h.h, t: 'b', n: note, f: h.f_b });
+                    if (h.d === note) matches.push({ h: h.h, t: 'd', n: note, f: h.f_d });
+                    h.bends.forEach(b => { if (b.n === note) matches.push({ h: h.h, t: 'bend', n: note, f: b.f, sub: b.t }); });
                 });
 
                 if (matches.length > 0) {
-                    const best = chooseBestMatch(matches, lastHole, parsed.octaveShift, preferredOctaveMode, positionMode);
+                    const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
+                    const referenceFreq = direction === 'auto' ? null : (lastFreqByNote[note] ?? autoBest.f);
+                    const best = direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq);
                     lastHole = best.h;
-                    container.appendChild(createDisplayNode(parsed.displayText, best));
+                    lastFreqByNote[note] = best.f;
+                    const node = document.createElement('div');
+                    node.className = 'tab-node';
+                    node.dataset.type = 'note';
+                    node.dataset.freq = best.f;
+                    node.dataset.hole = best.h;
+                    node.dataset.mode = best.t;
+                    
+                    let symbol = best.t === 'b' ? '↑' : '↓';
+                    if(best.t === 'bend') symbol = best.sub === 'db' ? '↓\'' : '↑\'';
+
+                    const directionLabel = direction === 'higher' ? '+' : direction === 'lower' ? '-' : '';
+
+                    node.innerHTML = `
+                        <span class="note-name">${best.n}${directionLabel}</span>
+                        <span class="channel">${best.h}</span>
+                        <span class="arrow ${best.t}">${symbol}</span>
+                    `;
+                    container.appendChild(node);
                 }
-                i = parsed.nextIndex + 1;
+                i++;
             }
         }
 
@@ -1012,12 +726,7 @@
             window.isGlobalPlaying = false;
         }
 
-        window.onload = () => {
-            drawHarpMap();
-            findBestHarp();
-            rebuildAll();
-            setSaveStatus('Nicht gespeichert');
-        };
+        window.onload = drawHarpMap;
     </script>
 </body>
 </html>
