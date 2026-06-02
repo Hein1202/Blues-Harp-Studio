@@ -53,6 +53,14 @@
         .harp-hole.active-blow { background: #eff6ff; border-color: #2563eb; border-width: 3px; transform: translateY(-2px); }
         .harp-hole.active-draw { background: #fef2f2; border-color: #dc2626; border-width: 3px; transform: translateY(2px); }
         .harp-hole.active-bend { background: #fffbeb; border-color: #d97706; border-width: 3px; }
+
+        .harp-hole.finder-active-blow { background: #eff6ff; border-color: #2563eb; border-width: 3px; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+        .harp-hole.finder-active-draw { background: #fef2f2; border-color: #dc2626; border-width: 3px; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); }
+        .harp-hole.finder-active-bend { background: #fffbeb; border-color: #d97706; border-width: 3px; box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18); }
+        .harp-note-marker { border-radius: 999px; padding: 1px 7px; }
+        .harp-note-marker.finder-note-highlight-blow { background: #dbeafe; color: #1d4ed8; outline: 2px solid #2563eb; }
+        .harp-note-marker.finder-note-highlight-draw { background: #fee2e2; color: #b91c1c; outline: 2px solid #dc2626; }
+        .harp-note-marker.finder-note-highlight-bend { background: #fef3c7; color: #92400e; outline: 2px solid #d97706; }
         
         .hole-number { 
             font-size: 1.1rem; 
@@ -253,7 +261,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 177 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 181 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -462,20 +470,77 @@
             return matches.reduce((p, c) => Math.abs(c.h - lastHole) < Math.abs(p.h - lastHole) ? c : p);
         }
 
-        function extractNotes(text) {
-            const notes = [];
+        function extractNoteRequests(text) {
+            const requests = [];
             let i = 0;
             const upper = text.toUpperCase().replace(/♭/g, 'B');
             while (i < upper.length) {
                 const found = readNoteAt(upper, i);
                 if (found && found.note) {
-                    notes.push(found.note);
+                    requests.push({ note: found.note, direction: found.direction || 'auto' });
                     i = found.end;
                 } else {
                     i++;
                 }
             }
-            return notes;
+            return requests;
+        }
+
+        function extractNotes(text) {
+            return extractNoteRequests(text).map(item => item.note);
+        }
+
+        function getMatchesForNote(currentHarp, note) {
+            const matches = [];
+            currentHarp.forEach(h => {
+                if (h.b === note) matches.push({ h: h.h, t: 'b', n: note, f: h.f_b });
+                if (h.d === note) matches.push({ h: h.h, t: 'd', n: note, f: h.f_d });
+                h.bends.forEach(b => {
+                    if (b.n === note) matches.push({ h: h.h, t: 'bend', n: note, f: b.f, sub: b.t });
+                });
+            });
+            return matches;
+        }
+
+        function scoreMatch(match) {
+            if (!match) return 0;
+            return match.t === 'bend' ? 1 : 2;
+        }
+
+        function scoreHarpForRequests(key, noteRequests) {
+            const data = getHarpData(key);
+            let score = 0;
+            let possible = 0;
+            let lastHole = 4;
+            const lastFreqByNote = {};
+
+            noteRequests.forEach(request => {
+                const matches = getMatchesForNote(data, request.note);
+                const direction = request.direction || 'auto';
+                possible += direction === 'auto' ? 2 : 3;
+
+                if (!matches.length) return;
+
+                const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
+                let best = autoBest;
+                let directionWasPossible = false;
+
+                if (direction !== 'auto') {
+                    const referenceFreq = lastFreqByNote[request.note] ?? autoBest.f;
+                    best = chooseBestMatch(matches, lastHole, direction, referenceFreq);
+                    directionWasPossible = direction === 'higher'
+                        ? best.f > referenceFreq + 0.001
+                        : best.f < referenceFreq - 0.001;
+                }
+
+                score += scoreMatch(best);
+                if (direction !== 'auto' && directionWasPossible) score += 1;
+
+                lastHole = best.h;
+                lastFreqByNote[request.note] = best.f;
+            });
+
+            return { key, score, possible: possible || 1 };
         }
 
         function toggleLowOctave() {
@@ -517,40 +582,84 @@
         }
 
         // --- HARP FINDER LOGIK ---
+
+        function clearFinderMarks() {
+            document.querySelectorAll('.harp-hole').forEach(hole => {
+                hole.classList.remove('finder-active-blow', 'finder-active-draw', 'finder-active-bend');
+            });
+            document.querySelectorAll('.harp-note-marker').forEach(marker => {
+                marker.classList.remove('finder-note-highlight-blow', 'finder-note-highlight-draw', 'finder-note-highlight-bend');
+            });
+        }
+
+        function markFinderNotesOnHarp(noteRequests = null) {
+            clearFinderMarks();
+            const finder = document.getElementById('finder-input');
+            const requests = noteRequests || extractNoteRequests((finder ? finder.value : '').toUpperCase().replace(/♭/g, 'B'));
+            if (!requests.length) return;
+
+            const root = document.getElementById('key-select').value;
+            const currentHarp = getHarpData(root);
+            let lastHole = 4;
+            const lastFreqByNote = {};
+
+            requests.forEach(request => {
+                const matches = getMatchesForNote(currentHarp, request.note);
+                if (!matches.length) return;
+
+                const direction = request.direction || 'auto';
+                const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
+                const referenceFreq = direction === 'auto' ? null : (lastFreqByNote[request.note] ?? autoBest.f);
+                const best = direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq);
+                if (!best) return;
+
+                lastHole = best.h;
+                lastFreqByNote[request.note] = best.f;
+
+                const hole = document.getElementById(`vis-hole-${best.h}`);
+                const kind = best.t === 'b' ? 'blow' : best.t === 'd' ? 'draw' : 'bend';
+                if (hole) hole.classList.add(`finder-active-${kind}`);
+
+                const markers = Array.from(document.querySelectorAll(`.harp-note-marker[data-hole="${best.h}"]`));
+                const marker = markers.find(m => {
+                    const sameNote = m.dataset.note === best.n;
+                    const sameMode = m.dataset.mode === best.t;
+                    const sameFreq = Math.abs(parseFloat(m.dataset.freq || '0') - best.f) < 0.001;
+                    return sameNote && sameMode && sameFreq;
+                });
+                if (marker) marker.classList.add(`finder-note-highlight-${kind}`);
+            });
+        }
+
         function findBestHarp() {
             const input = document.getElementById('finder-input').value.toUpperCase();
             const resultsDiv = document.getElementById('finder-results');
             
-            // Töne extrahieren – Bb/B/H werden hier einheitlich behandelt.
-            const notesToFind = extractNotes(input);
+            // Töne extrahieren – dieselbe Logik wie in der Noteneingabe, inkl. Bb/B/H und +/-.
+            const noteRequests = extractNoteRequests(input);
 
-            if (notesToFind.length === 0) {
+            if (noteRequests.length === 0) {
+                clearFinderMarks();
                 resultsDiv.innerHTML = '<span class="text-[10px] font-bold text-pink-400 italic">Hier erscheinen Vorschläge...</span>';
                 return;
             }
 
-            // Scores berechnen
-            const rankings = keysToTest.map(key => {
-                const data = getHarpData(key);
-                let score = 0;
-                notesToFind.forEach(target => {
-                    // Prüfe ob Ton als Blow oder Draw vorhanden (Score 2) oder als Bend (Score 1)
-                    let foundNormal = data.some(h => h.b === target || h.d === target);
-                    let foundBend = data.some(h => h.bends.some(b => b.n === target));
-                    if(foundNormal) score += 2;
-                    else if(foundBend) score += 1;
-                });
-                return { key, score };
-            }).sort((a, b) => b.score - a.score);
+            // Scores berechnen: normale Töne zählen als Blow/Draw stärker als Bends.
+            // Bei + und - bekommt eine Harp zusätzlich Punkte, wenn wirklich eine höhere/tiefere Lage vorhanden ist.
+            const rankings = keysToTest
+                .map(key => scoreHarpForRequests(key, noteRequests))
+                .sort((a, b) => b.score - a.score);
 
             const maxScore = rankings[0].score;
 
             resultsDiv.innerHTML = rankings.slice(0, 4).map(r => `
                 <div class="finder-result ${r.score === maxScore && r.score > 0 ? 'best' : ''}" onclick="selectKey('${r.key}')">
                     <span class="text-xs mr-2 font-black">${r.key}</span>
-                    <span class="text-[9px] opacity-70">${Math.round((r.score / (notesToFind.length * 2)) * 100)}% Match</span>
+                    <span class="text-[9px] opacity-70">${Math.round((r.score / r.possible) * 100)}% Match</span>
                 </div>
             `).join('');
+
+            markFinderNotesOnHarp(noteRequests);
         }
 
         function selectKey(key) {
@@ -566,18 +675,18 @@
             
             container.innerHTML = data.map(h => {
                 const displayBends = h.bends.slice(0, 2);
-                const bendsHtml = displayBends.map(b => `<span class="note-bend">${b.n}</span>`).join('');
+                const bendsHtml = displayBends.map(b => `<span class="note-bend harp-note-marker" data-hole="${h.h}" data-mode="bend" data-sub="${b.t}" data-note="${b.n}" data-freq="${b.f}">${b.n}</span>`).join('');
                 
                 return `
                     <div class="harp-hole" id="vis-hole-${h.h}">
                         <div class="hole-top">
-                            <span class="text-[9px] font-black text-slate-300 mb-0.5">↑</span>
-                            <span class="hole-note note-blow">${h.b}</span>
+                            <span class="text-[15px] font-black text-black mb-0.5 leading-none">↑</span>
+                            <span class="hole-note note-blow harp-note-marker" data-hole="${h.h}" data-mode="b" data-note="${h.b}" data-freq="${h.f_b}">${h.b}</span>
                         </div>
                         <div class="hole-number">${h.h}</div>
                         <div class="hole-bottom">
-                            <span class="hole-note note-draw">${h.d}</span>
-                            <span class="text-[9px] font-black text-slate-300 mt-0.5">↓</span>
+                            <span class="hole-note note-draw harp-note-marker" data-hole="${h.h}" data-mode="d" data-note="${h.d}" data-freq="${h.f_d}">${h.d}</span>
+                            <span class="text-[15px] font-black text-black mt-0.5 leading-none">↓</span>
                         </div>
                         <div class="hole-bends-area">
                             ${bendsHtml}
@@ -606,6 +715,7 @@
 
         function rebuildAll() {
             drawHarpMap();
+            markFinderNotesOnHarp();
             document.querySelectorAll('.input-field').forEach((input, i) => updateView(input, i + 1));
         }
 
@@ -632,12 +742,7 @@
                 const direction = found.direction || 'auto';
                 i = found.end - 1;
 
-                const matches = [];
-                currentHarp.forEach(h => {
-                    if (h.b === note) matches.push({ h: h.h, t: 'b', n: note, f: h.f_b });
-                    if (h.d === note) matches.push({ h: h.h, t: 'd', n: note, f: h.f_d });
-                    h.bends.forEach(b => { if (b.n === note) matches.push({ h: h.h, t: 'bend', n: note, f: b.f, sub: b.t }); });
-                });
+                const matches = getMatchesForNote(currentHarp, note);
 
                 if (matches.length > 0) {
                     const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
@@ -651,16 +756,19 @@
                     node.dataset.freq = best.f;
                     node.dataset.hole = best.h;
                     node.dataset.mode = best.t;
+                    node.dataset.activeClass = best.t === 'b' ? 'active-blow' : best.t === 'd' ? 'active-draw' : 'active-bend';
                     
                     let symbol = best.t === 'b' ? '↑' : '↓';
                     if(best.t === 'bend') symbol = best.sub === 'db' ? '↓\'' : '↑\'';
 
                     const directionLabel = direction === 'higher' ? '+' : direction === 'lower' ? '-' : '';
 
+                    const arrowClass = best.t === 'b' ? 'blow' : best.t === 'd' ? 'draw' : 'bend';
+
                     node.innerHTML = `
                         <span class="note-name">${best.n}${directionLabel}</span>
                         <span class="channel">${best.h}</span>
-                        <span class="arrow ${best.t}">${symbol}</span>
+                        <span class="arrow ${arrowClass}">${symbol}</span>
                     `;
                     container.appendChild(node);
                 }
@@ -700,13 +808,14 @@
                 if (el.dataset.type === 'note') {
                     const holeNum = el.dataset.hole;
                     const mode = el.dataset.mode;
+                    const activeClass = el.dataset.activeClass || (mode === 'b' ? 'active-blow' : mode === 'd' ? 'active-draw' : 'active-bend');
                     const visHole = document.getElementById(`vis-hole-${holeNum}`);
                     el.classList.add('playing');
-                    if (visHole) visHole.classList.add('active-' + mode);
+                    if (visHole) visHole.classList.add(activeClass);
                     await playNote(parseFloat(el.dataset.freq), speed/1000*1.5);
                     await new Promise(r => setTimeout(r, speed));
                     el.classList.remove('playing');
-                    if (visHole) visHole.classList.remove('active-' + mode);
+                    if (visHole) visHole.classList.remove(activeClass);
                 } else {
                     await new Promise(r => setTimeout(r, speed/2));
                 }
@@ -726,7 +835,7 @@
             window.isGlobalPlaying = false;
         }
 
-        window.onload = drawHarpMap;
+        window.onload = () => { drawHarpMap(); markFinderNotesOnHarp(); };
     </script>
 </body>
 </html>
