@@ -127,6 +127,17 @@
             border: 3px solid #e2e8f0; 
         }
 
+
+        .song-play-panel {
+            display: flex;
+            justify-content: center;
+            margin: 1.5rem 0 2rem;
+            padding: 18px;
+            background: #f8fafc;
+            border: 3px solid #e2e8f0;
+            border-radius: 14px;
+        }
+
         .toggle-btn {
             background: #e2e8f0;
             padding: 4px;
@@ -251,6 +262,163 @@
             color: #64748b;
         }
 
+
+        .piano-box {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            margin: 10px 0 18px 0;
+            overflow: hidden;
+        }
+        .piano-box summary {
+            list-style: none;
+            cursor: pointer;
+            user-select: none;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #334155;
+            background: #f8fafc;
+        }
+        .piano-box summary::-webkit-details-marker { display: none; }
+        .piano-box[open] summary { border-bottom: 2px solid #e2e8f0; }
+        .piano-arrow { font-size: 1rem; transition: transform 0.2s ease; color: #64748b; }
+        .piano-box[open] .piano-arrow { transform: rotate(180deg); }
+        .piano-panel {
+            padding: 14px 16px 16px;
+            background: #ffffff;
+        }
+        .piano-octave-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .piano-octave-group {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 10px;
+            border: 2px solid #f1f5f9;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        .piano-octave-group.normal-octave {
+            border-color: #bfdbfe;
+            background: #eff6ff;
+        }
+        .piano-octave-label {
+            width: 100%;
+            font-size: 0.62rem;
+            font-weight: 900;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            margin-bottom: 2px;
+        }
+        .piano-octave-label strong { color: #0f172a; }
+        .piano-mode-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .piano-mode-label {
+            font-size: 0.65rem;
+            font-weight: 900;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            margin-right: 4px;
+        }
+        .piano-mode-btn {
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 0.68rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #334155;
+            transition: all 0.15s ease;
+        }
+        .piano-mode-btn.active {
+            background: #1e293b;
+            border-color: #0f172a;
+            color: #ffffff;
+        }
+        .piano-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .piano-row-label {
+            flex-shrink: 0;
+            font-size: 0.65rem;
+            font-weight: 900;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            margin-right: 4px;
+        }
+        .piano-key {
+            min-width: 42px;
+            height: 38px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #0f172a;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 900;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 0 #e2e8f0;
+        }
+        .piano-key.black-key {
+            background: #1e293b;
+            border-color: #0f172a;
+            color: #ffffff;
+            box-shadow: 0 2px 0 #0f172a;
+        }
+        .piano-key:hover {
+            transform: translateY(-1px);
+            border-color: #3b82f6;
+            box-shadow: 0 4px 8px rgba(15, 23, 42, 0.12);
+        }
+        .piano-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid #f1f5f9;
+        }
+        .piano-action-btn {
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 8px 12px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            color: #334155;
+        }
+        .piano-action-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
+
         @media print { .no-print { display: none !important; } .line-row { border: none; border-bottom: 2px solid #eee; padding-left: 0; } }
     </style>
 </head>
@@ -261,7 +429,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 181 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 187 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -281,6 +449,15 @@
                 <span class="text-[10px] font-bold text-pink-400 italic">Hier erscheinen Vorschläge...</span>
             </div>
         </div>
+        <details class="piano-box no-print">
+            <summary>
+                <span>🎹 Piano-Eingabe für Harp-Finder anzeigen</span>
+                <span class="piano-arrow">⌄</span>
+            </summary>
+            <div class="piano-panel">
+                <div class="piano-keyboard" data-target="finder-input"></div>
+            </div>
+        </details>
         <p class="text-[10px] text-pink-500 font-medium">Das Programm berechnet, auf welcher Harp die Töne am einfachsten (ohne komplexe Bends) spielbar sind. Deutsche Schreibweise: H = engl. B, Bb/B = B-flat.</p>
     </div>
 
@@ -288,8 +465,6 @@
 
     <div class="controls-bar no-print">
         <div class="flex items-center gap-6">
-            <button id="master-play" onclick="playAllRows()" class="bg-slate-800 hover:bg-black text-white px-8 py-3.5 rounded-xl font-black text-sm transition-all shadow-md active:scale-95">▶ Song abspielen</button>
-            
             <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border-2 border-slate-200">
                 <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Oktave -1</span>
                 <div id="octave-toggle" class="toggle-btn" onclick="toggleLowOctave()">
@@ -364,13 +539,26 @@
         </div>
     </details>
 
+    <div class="song-play-panel no-print">
+        <button id="master-play" onclick="playAllRows()" class="bg-slate-800 hover:bg-black text-white px-10 py-4 rounded-xl font-black text-sm transition-all shadow-md active:scale-95">▶ Song abspielen</button>
+    </div>
+
     <div id="editor">
         <div class="line-row" id="row-1">
             <div class="play-row-btn no-print absolute left-[-55px] top-6 cursor-pointer text-slate-300 hover:text-blue-600 transition-colors" onclick="playRow(1)">
                 <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </div>
             <div class="mb-6">
-                <input type="text" class="input-field no-print" placeholder="Notennamen eingeben (z.B. C D E F G, D+ höher, D- tiefer)..." oninput="updateView(this, 1)">
+                <input type="text" id="note-input-1" class="input-field no-print" placeholder="Notennamen eingeben (z.B. C D E F G, D+ höher, D- tiefer)..." oninput="updateView(this, 1)">
+                <details class="piano-box no-print">
+                    <summary>
+                        <span>🎹 Piano-Eingabe für diese Zeile anzeigen</span>
+                        <span class="piano-arrow">⌄</span>
+                    </summary>
+                    <div class="piano-panel">
+                        <div class="piano-keyboard" data-target="note-input-1"></div>
+                    </div>
+                </details>
             </div>
             <div class="display flex flex-wrap items-center mt-4 min-h-[90px]"></div>
         </div>
@@ -406,6 +594,174 @@
 
         const notesCircular = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"];
         const keysToTest = ["C", "D", "E", "F", "G", "A", "Bb", "H"];
+
+
+        const pianoNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "Bb", "H"];
+        const pianoOctaves = [
+            { label: 'tiefe Lage', suffix: '-', octave: 0, helper: 'fügt z. B. A- ein' },
+            { label: 'normale Lage', suffix: '', octave: 1, helper: 'entspricht der normalen Piano-Lage', isNormal: true },
+            { label: 'hohe Lage', suffix: '+', octave: 2, helper: 'fügt z. B. A+ ein' }
+        ];
+
+        function isBlackPianoKey(note) {
+            return note.includes('#') || note === 'Bb';
+        }
+
+        function renderPianoKeyboard(container) {
+            if (!container || container.dataset.rendered === '1') return;
+            const targetId = container.dataset.target;
+
+            let html = `<div class="piano-octave-strip">`;
+            pianoOctaves.forEach(octave => {
+                const normalClass = octave.isNormal ? ' normal-octave' : '';
+                html += `<div class="piano-octave-group${normalClass}">`;
+                html += `<div class="piano-octave-label"><strong>${octave.label}</strong> · ${octave.helper}</div>`;
+                pianoNotes.forEach(note => {
+                    const blackClass = isBlackPianoKey(note) ? ' black-key' : '';
+                    const safeSuffix = octave.suffix;
+                    html += `<button type="button" class="piano-key${blackClass}" onclick="insertPianoToken('${targetId}', '${note}', '${safeSuffix}', ${octave.octave})">${note}</button>`;
+                });
+                html += `</div>`;
+            });
+            html += `</div>`;
+
+            html += `
+                <div class="piano-actions">
+                    <button type="button" class="piano-action-btn" onclick="insertPianoSpace('${targetId}')">Leerzeichen</button>
+                    <button type="button" class="piano-action-btn" onclick="deleteLastPianoToken('${targetId}')">Letzte Note löschen</button>
+                </div>`;
+
+            container.innerHTML = html;
+            container.dataset.rendered = '1';
+        }
+
+        function renderAllPianos() {
+            document.querySelectorAll('.piano-keyboard').forEach(renderPianoKeyboard);
+        }
+
+        function triggerInputUpdate(input) {
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        function getPianoTokens(input) {
+            try {
+                if (input.dataset.pianoText === input.value && input.dataset.pianoTokens) {
+                    return JSON.parse(input.dataset.pianoTokens);
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function storePianoTokens(input, tokens) {
+            input.dataset.pianoTokens = JSON.stringify(tokens);
+            input.dataset.pianoText = input.value;
+        }
+
+        function clearPianoTokens(input) {
+            delete input.dataset.pianoTokens;
+            delete input.dataset.pianoText;
+        }
+
+        function getBaseFreqForNote(note) {
+            const key = note === 'A#' ? 'Bb' : note;
+            return baseFreqs[key] || baseFreqs[normalizeInputNote(key)] || null;
+        }
+
+        function getPianoTargetFreq(note, octave = 1) {
+            const base = getBaseFreqForNote(note);
+            if (!base) return null;
+            return base * Math.pow(2, octave);
+        }
+
+        function tokenTextFromPianoToken(token) {
+            if (token.type === 'space') return '   ';
+            if (token.type === 'repeat') return token.text || '';
+            return `${token.note}${token.suffix || ''}`;
+        }
+
+        function rebuildInputFromPianoTokens(input, tokens) {
+            input.value = tokens.map(tokenTextFromPianoToken).join(' ').replace(/\s+$/g, '');
+            const cursor = input.value.length;
+            input.focus();
+            input.setSelectionRange(cursor, cursor);
+            storePianoTokens(input, tokens);
+            triggerInputUpdate(input);
+        }
+
+        function getNoteRequestsForInput(input) {
+            const tokens = getPianoTokens(input);
+            if (tokens) {
+                return tokens
+                    .filter(t => t.type === 'note')
+                    .map(t => ({
+                        note: t.note,
+                        direction: t.direction || 'auto',
+                        targetFreq: typeof t.targetFreq === 'number' ? t.targetFreq : null,
+                        fromPiano: true
+                    }));
+            }
+            return extractNoteRequests(input.value);
+        }
+
+        function insertAtCursor(input, value) {
+            const start = input.selectionStart ?? input.value.length;
+            const end = input.selectionEnd ?? input.value.length;
+            const before = input.value.slice(0, start);
+            const after = input.value.slice(end);
+            const needsSpaceBefore = before.length > 0 && !/\s$/.test(before);
+            const insertValue = `${needsSpaceBefore ? ' ' : ''}${value}`;
+            input.value = before + insertValue + after;
+            const cursor = (before + insertValue).length;
+            input.focus();
+            input.setSelectionRange(cursor, cursor);
+            triggerInputUpdate(input);
+        }
+
+        function insertPianoToken(targetId, note, suffix = '', octave = 1) {
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            const tokens = getPianoTokens(input) || [];
+            const direction = suffix === '+' ? 'higher' : suffix === '-' ? 'lower' : 'auto';
+            tokens.push({
+                type: 'note',
+                note,
+                suffix,
+                direction,
+                octave,
+                targetFreq: getPianoTargetFreq(note, octave)
+            });
+            rebuildInputFromPianoTokens(input, tokens);
+        }
+
+        function insertPianoSpace(targetId) {
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            const tokens = getPianoTokens(input) || [];
+            tokens.push({ type: 'space' });
+            rebuildInputFromPianoTokens(input, tokens);
+        }
+
+        function deleteLastPianoToken(targetId) {
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            const tokens = getPianoTokens(input);
+            if (tokens && tokens.length) {
+                tokens.pop();
+                rebuildInputFromPianoTokens(input, tokens);
+                return;
+            }
+            const cursor = input.selectionStart ?? input.value.length;
+            const beforeCursor = input.value.slice(0, cursor);
+            const afterCursor = input.value.slice(input.selectionEnd ?? cursor);
+            const trimmed = beforeCursor.replace(/\s+$/, '');
+            const updatedBefore = trimmed.replace(/\S+$/, '').replace(/\s+$/, '');
+            input.value = updatedBefore + (updatedBefore && afterCursor ? ' ' : '') + afterCursor.replace(/^\s+/, '');
+            const newCursor = updatedBefore.length;
+            input.focus();
+            input.setSelectionRange(newCursor, newCursor);
+            clearPianoTokens(input);
+            triggerInputUpdate(input);
+        }
 
 
         // Einheitliche Notenlogik für deutsche Schreibweise:
@@ -470,6 +826,18 @@
             return matches.reduce((p, c) => Math.abs(c.h - lastHole) < Math.abs(p.h - lastHole) ? c : p);
         }
 
+        function chooseBestMatchForPiano(matches, targetFreq, lastHole) {
+            if (!matches.length) return null;
+            if (typeof targetFreq !== 'number' || Number.isNaN(targetFreq)) {
+                return chooseBestMatch(matches, lastHole, 'auto', null);
+            }
+            return [...matches].sort((a, b) => {
+                const diff = Math.abs(a.f - targetFreq) - Math.abs(b.f - targetFreq);
+                if (Math.abs(diff) > 0.001) return diff;
+                return Math.abs(a.h - lastHole) - Math.abs(b.h - lastHole);
+            })[0];
+        }
+
         function extractNoteRequests(text) {
             const requests = [];
             let i = 0;
@@ -525,7 +893,10 @@
                 let best = autoBest;
                 let directionWasPossible = false;
 
-                if (direction !== 'auto') {
+                if (request.fromPiano && typeof request.targetFreq === 'number') {
+                    best = chooseBestMatchForPiano(matches, request.targetFreq, lastHole);
+                    directionWasPossible = Math.abs(best.f - request.targetFreq) < 80;
+                } else if (direction !== 'auto') {
                     const referenceFreq = lastFreqByNote[request.note] ?? autoBest.f;
                     best = chooseBestMatch(matches, lastHole, direction, referenceFreq);
                     directionWasPossible = direction === 'higher'
@@ -610,7 +981,9 @@
                 const direction = request.direction || 'auto';
                 const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
                 const referenceFreq = direction === 'auto' ? null : (lastFreqByNote[request.note] ?? autoBest.f);
-                const best = direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq);
+                const best = request.fromPiano && typeof request.targetFreq === 'number'
+                    ? chooseBestMatchForPiano(matches, request.targetFreq, lastHole)
+                    : (direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq));
                 if (!best) return;
 
                 lastHole = best.h;
@@ -632,11 +1005,12 @@
         }
 
         function findBestHarp() {
-            const input = document.getElementById('finder-input').value.toUpperCase();
+            const finderInput = document.getElementById('finder-input');
+            const input = finderInput.value.toUpperCase();
             const resultsDiv = document.getElementById('finder-results');
             
             // Töne extrahieren – dieselbe Logik wie in der Noteneingabe, inkl. Bb/B/H und +/-.
-            const noteRequests = extractNoteRequests(input);
+            const noteRequests = getNoteRequestsForInput(finderInput);
 
             if (noteRequests.length === 0) {
                 clearFinderMarks();
@@ -707,10 +1081,20 @@
                     <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </div>
                 <div class="mb-6">
-                    <input type="text" class="input-field no-print" placeholder="... (D+ höher, D- tiefer)" oninput="updateView(this, ${lineIdx})">
+                    <input type="text" id="note-input-${lineIdx}" class="input-field no-print" placeholder="... (D+ höher, D- tiefer)" oninput="updateView(this, ${lineIdx})">
+                    <details class="piano-box no-print">
+                        <summary>
+                            <span>🎹 Piano-Eingabe für diese Zeile anzeigen</span>
+                            <span class="piano-arrow">⌄</span>
+                        </summary>
+                        <div class="piano-panel">
+                            <div class="piano-keyboard" data-target="note-input-${lineIdx}"></div>
+                        </div>
+                    </details>
                 </div>
                 <div class="display flex flex-wrap items-center mt-4 min-h-[90px]"></div>`;
             document.getElementById('editor').appendChild(div);
+            renderPianoKeyboard(div.querySelector('.piano-keyboard'));
         }
 
         function rebuildAll() {
@@ -724,30 +1108,24 @@
             const currentHarp = getHarpData(root);
             const container = document.querySelector(`#row-${id} .display`);
             let text = input.value.toUpperCase().replace(/♭/g, 'B');
+            const pianoTokens = getPianoTokens(input);
 
             container.innerHTML = '';
             let i = 0;
             let lastHole = 4;
             const lastFreqByNote = {};
 
-            while (i < text.length) {
-                const c = text[i];
-                if (c === ' ') { container.innerHTML += '<div class="spacer"></div>'; i++; continue; }
-                const rep = text.slice(i).match(/^(\d+X)/);
-                if (rep) { container.innerHTML += `<div class="repeat-box" data-type="repeat" data-count="${parseInt(rep[1])}">${rep[1]}</div>`; i += rep[1].length; continue; }
-                
-                const found = readNoteAt(text, i);
-                if (!found || !found.note) { i++; continue; }
-                let note = found.note;
-                const direction = found.direction || 'auto';
-                i = found.end - 1;
-
+            const renderRequest = (request) => {
+                const note = request.note;
+                const direction = request.direction || 'auto';
                 const matches = getMatchesForNote(currentHarp, note);
 
                 if (matches.length > 0) {
                     const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
                     const referenceFreq = direction === 'auto' ? null : (lastFreqByNote[note] ?? autoBest.f);
-                    const best = direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq);
+                    const best = request.fromPiano && typeof request.targetFreq === 'number'
+                        ? chooseBestMatchForPiano(matches, request.targetFreq, lastHole)
+                        : (direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq));
                     lastHole = best.h;
                     lastFreqByNote[note] = best.f;
                     const node = document.createElement('div');
@@ -772,7 +1150,34 @@
                     `;
                     container.appendChild(node);
                 }
-                i++;
+            };
+
+            if (pianoTokens) {
+                pianoTokens.forEach(token => {
+                    if (token.type === 'space') {
+                        container.innerHTML += '<div class="spacer"></div>';
+                    } else if (token.type === 'note') {
+                        renderRequest({
+                            note: token.note,
+                            direction: token.direction || 'auto',
+                            targetFreq: typeof token.targetFreq === 'number' ? token.targetFreq : null,
+                            fromPiano: true
+                        });
+                    }
+                });
+                return;
+            }
+
+            while (i < text.length) {
+                const c = text[i];
+                if (c === ' ') { container.innerHTML += '<div class="spacer"></div>'; i++; continue; }
+                const rep = text.slice(i).match(/^(\d+X)/);
+                if (rep) { container.innerHTML += `<div class="repeat-box" data-type="repeat" data-count="${parseInt(rep[1])}">${rep[1]}</div>`; i += rep[1].length; continue; }
+                
+                const found = readNoteAt(text, i);
+                if (!found || !found.note) { i++; continue; }
+                renderRequest({ note: found.note, direction: found.direction || 'auto' });
+                i = found.end;
             }
         }
 
@@ -835,7 +1240,7 @@
             window.isGlobalPlaying = false;
         }
 
-        window.onload = () => { drawHarpMap(); markFinderNotesOnHarp(); };
+        window.onload = () => { drawHarpMap(); renderAllPianos(); markFinderNotesOnHarp(); };
     </script>
 </body>
 </html>
