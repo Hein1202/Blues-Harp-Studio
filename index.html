@@ -111,6 +111,28 @@
             box-shadow: 0 8px 20px rgba(59, 130, 246, 0.12);
         }
 
+        .row-harp-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 0 14px;
+        }
+        .row-harp-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e40af;
+            background: #dbeafe;
+            border: 2px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 8px 22px;
+            font-size: 0.8rem;
+            font-weight: 900;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            box-shadow: 0 2px 6px rgba(30, 64, 175, 0.08);
+        }
+
         .spacer { width: 3px; height: 50px; background: #cbd5e1; margin: 0 20px; display: inline-block; align-self: center; border-radius: 4px; }
         .repeat-box { font-weight: 900; color: #92400e; font-size: 1.3rem; margin: 0 12px; padding: 8px 14px; border: 3px solid #f59e0b; border-radius: 10px; background: #fffbeb; }
 
@@ -187,6 +209,39 @@
             transition: left 0.3s;
         }
         .toggle-btn.active .toggle-circle { left: 28px; }
+
+        .harp-position-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 12px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 5px;
+        }
+        .harp-position-btn {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 7px 11px;
+            font-size: 0.68rem;
+            font-weight: 900;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            transition: all 0.15s ease;
+        }
+        .harp-position-btn:hover { border-color: #3b82f6; color: #1d4ed8; background: #eff6ff; }
+        .harp-position-value {
+            min-width: 76px;
+            text-align: center;
+            color: #1e293b;
+            font-size: 0.68rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
 
         /* Harp Finder Styles */
         .finder-card {
@@ -446,6 +501,63 @@
         }
         .piano-action-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
 
+
+        .guitar-tab-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+        .guitar-tab-box summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 12px 14px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            user-select: none;
+        }
+        .guitar-tab-box summary::-webkit-details-marker { display: none; }
+        .guitar-tab-box[open] summary { border-bottom: 2px solid #e2e8f0; }
+        .guitar-tab-arrow { font-size: 1rem; transition: transform 0.2s ease; color: #64748b; }
+        .guitar-tab-box[open] .guitar-tab-arrow { transform: rotate(180deg); }
+        .guitar-tab-panel { padding: 14px; background: #ffffff; }
+        .guitar-tab-hint { font-size: 0.7rem; color: #64748b; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
+        .guitar-tab-input {
+            width: 100%;
+            min-height: 132px;
+            resize: vertical;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.86rem;
+            line-height: 1.4;
+            outline: none;
+            background: #f8fafc;
+        }
+        .guitar-tab-input:focus { border-color: #64748b; background: #ffffff; }
+        .guitar-tab-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; align-items: center; }
+        .guitar-tab-btn {
+            border: 2px solid #cbd5e1;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            color: #334155;
+            transition: all 0.15s;
+        }
+        .guitar-tab-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
+        .guitar-tab-status { font-size: 0.72rem; font-weight: 800; color: #64748b; }
+
         @media print { .no-print { display: none !important; } .line-row { border: none; border-bottom: 2px solid #eee; padding-left: 0; } }
     </style>
 </head>
@@ -456,7 +568,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 188 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 199 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -485,7 +597,36 @@
                 <div class="piano-keyboard" data-target="finder-input"></div>
             </div>
         </details>
+        <details class="guitar-tab-box no-print">
+            <summary>
+                <span>🎸 Gitarren-Tabulatur für Harp-Finder anzeigen</span>
+                <span class="guitar-tab-arrow">⌄</span>
+            </summary>
+            <div class="guitar-tab-panel">
+                <div class="guitar-tab-hint">Tabulatur eingeben und danach in den Harp-Finder übernehmen. e-, H- und G-Saite werden als mittlere Harp-Lage übernommen.</div>
+                <textarea id="guitar-tab-finder-input" class="guitar-tab-input" spellcheck="false">e|----------------
+H|----------------
+G|----------------
+D|----------------
+A|----------------
+E|----------------</textarea>
+                <div class="guitar-tab-actions">
+                    <button type="button" class="guitar-tab-btn" onclick="convertGuitarTabToInput('guitar-tab-finder-input', 'finder-input')">In Finder übernehmen</button>
+                    <button type="button" class="guitar-tab-btn" onclick="resetGuitarTab('guitar-tab-finder-input')">Leeren</button>
+                    <span id="guitar-tab-finder-input-status" class="guitar-tab-status"></span>
+                </div>
+            </div>
+        </details>
         <p class="text-[10px] text-pink-500 font-medium">Das Programm berechnet, auf welcher Harp die Töne am einfachsten (ohne komplexe Bends) spielbar sind. Deutsche Schreibweise: H = engl. B, Bb/B = B-flat.</p>
+    </div>
+
+    <div id="harp-visual-heading" class="no-print mb-3 flex flex-wrap items-center justify-center gap-2">
+        <span id="harp-visual-key-label" class="text-sm md:text-base font-black text-blue-800 bg-blue-100 px-6 py-2.5 border-2 border-blue-200 rounded-xl tracking-widest uppercase shadow-sm">C-HARP</span>
+        <div class="harp-position-controls" aria-label="Harp-Lage umschalten">
+            <button type="button" class="harp-position-btn" onclick="changeHarpPositionShift(-1)">◀ Tiefer</button>
+            <span id="harp-position-label" class="harp-position-value">Standard</span>
+            <button type="button" class="harp-position-btn" onclick="changeHarpPositionShift(1)">Höher ▶</button>
+        </div>
     </div>
 
     <div id="harp-visual" class="harp-map no-print"></div>
@@ -590,6 +731,29 @@
                         <div class="piano-keyboard" data-target="note-input-1"></div>
                     </div>
                 </details>
+                <details class="guitar-tab-box no-print">
+                    <summary>
+                        <span>🎸 Gitarren-Tabulatur für diese Zeile anzeigen</span>
+                        <span class="guitar-tab-arrow">⌄</span>
+                    </summary>
+                    <div class="guitar-tab-panel">
+                        <div class="guitar-tab-hint">Tabulatur eingeben und danach in diese Notenzeile übernehmen. e-, H- und G-Saite werden als mittlere Harp-Lage übernommen.</div>
+                        <textarea id="guitar-tab-note-input-1" class="guitar-tab-input" spellcheck="false">e|----------------
+H|----------------
+G|----------------
+D|----------------
+A|----------------
+E|----------------</textarea>
+                        <div class="guitar-tab-actions">
+                            <button type="button" class="guitar-tab-btn" onclick="convertGuitarTabToInput('guitar-tab-note-input-1', 'note-input-1')">In Zeile übernehmen</button>
+                            <button type="button" class="guitar-tab-btn" onclick="resetGuitarTab('guitar-tab-note-input-1')">Leeren</button>
+                            <span id="guitar-tab-note-input-1-status" class="guitar-tab-status"></span>
+                        </div>
+                    </div>
+                </details>
+            </div>
+            <div class="row-harp-indicator">
+                <span class="row-harp-badge row-harp-key-label">C-HARP</span>
             </div>
             <div class="display flex flex-wrap items-center mt-4 min-h-[90px]"></div>
         </div>
@@ -604,6 +768,7 @@
         let audioCtx = null;
         let isSoundReady = false;
         let isLowOctave = false;
+        let harpPositionShift = 0;
 
         const baseFreqs = {
             "C": 261.63, "C#": 277.18, "Db": 277.18, "D": 293.66, "D#": 311.13, "Eb": 311.13,
@@ -729,7 +894,10 @@
                         note: t.note,
                         direction: t.direction || 'auto',
                         targetFreq: typeof t.targetFreq === 'number' ? t.targetFreq : null,
-                        fromPiano: true
+                        fromPiano: true,
+                        fromGuitar: !!t.fromGuitar,
+                        minHole: typeof t.minHole === 'number' ? t.minHole : null,
+                        preferredHole: typeof t.preferredHole === 'number' ? t.preferredHole : null
                     }));
             }
             return extractNoteRequests(input.value);
@@ -793,6 +961,130 @@
             input.setSelectionRange(newCursor, newCursor);
             clearPianoTokens(input);
             triggerInputUpdate(input);
+        }
+
+        const guitarStringOffsets = { "E": 4, "A": 9, "D": 2, "G": 7, "H": 11, "e": 4 };
+        const guitarOpenSemitonesFromC4 = { "E": -20, "A": -15, "D": -10, "G": -5, "H": -1, "e": 4 };
+        const guitarStringOrder = { "e": 0, "H": 1, "G": 2, "D": 3, "A": 4, "E": 5 };
+        const guitarTabTemplate = `e|----------------
+H|----------------
+G|----------------
+D|----------------
+A|----------------
+E|----------------`;
+
+        function normalizeGuitarStringName(name) {
+            if (!name) return null;
+            if (name === 'h' || name === 'H') return 'H';
+            if (name === 'e') return 'e';
+            if (name === 'E') return 'E';
+            return name.toUpperCase();
+        }
+
+        function positiveModulo(value, modulo) {
+            return ((value % modulo) + modulo) % modulo;
+        }
+
+        function getGuitarImportLane(stringName) {
+            const normalizedString = normalizeGuitarStringName(stringName);
+            // Vereinfachte musikalische Zuordnung für den Harp-Import:
+            // Melodien auf e-, H- und G-Saite sollen der normalen/mittleren Harp-Lage entsprechen.
+            // Wichtig: Bei der Harp-Auswahl bedeutet das nicht nur eine höhere Frequenz,
+            // sondern vor allem: möglichst nicht auf den Kanälen 1-3 landen, wenn es
+            // für denselben Ton eine sinnvolle Position ab Kanal 4 gibt.
+            if (["e", "H", "G"].includes(normalizedString)) {
+                return { suffix: '', direction: 'auto', octave: 1, minHole: 4, preferredHole: 5 };
+            }
+            return { suffix: '-', direction: 'lower', octave: 0, minHole: null, preferredHole: 3 };
+        }
+
+        function noteFromGuitarPosition(stringName, fret) {
+            const normalizedString = normalizeGuitarStringName(stringName);
+            const openSemitone = guitarOpenSemitonesFromC4[normalizedString];
+            if (typeof openSemitone !== 'number') return null;
+            const semitoneFromC4 = openSemitone + fret;
+            const note = pianoNotes[positiveModulo(semitoneFromC4, 12)];
+            const lane = getGuitarImportLane(normalizedString);
+            return {
+                type: 'note',
+                note,
+                suffix: lane.suffix,
+                direction: lane.direction,
+                octave: lane.octave,
+                targetFreq: getPianoTargetFreq(note, lane.octave),
+                minHole: lane.minHole,
+                preferredHole: lane.preferredHole,
+                fromGuitar: true
+            };
+        }
+
+        function extractFretEventsFromTabBody(body, stringName, lineIndex) {
+            const events = [];
+            let col = 0;
+            while (col < body.length) {
+                if (!/\d/.test(body[col])) { col++; continue; }
+                const startCol = col;
+                let digits = '';
+                while (col < body.length && /\d/.test(body[col])) {
+                    digits += body[col];
+                    col++;
+                }
+
+                // Gitarren-Tabs werden spaltenweise von links nach rechts gelesen.
+                // Direkt nebeneinander stehende gleiche Ziffern wie "33" oder "66"
+                // werden als zwei einzelne gespielte Töne behandelt.
+                // Unterschiedliche zweistellige Zahlen wie 10, 11, 12 ... bleiben als ein Bund erhalten.
+                let frets;
+                if (digits.length === 2 && digits[0] !== digits[1]) {
+                    const possibleFret = parseInt(digits, 10);
+                    frets = possibleFret <= 24 ? [{ fret: possibleFret, column: startCol }] : digits.split('').map((d, idx) => ({ fret: parseInt(d, 10), column: startCol + idx }));
+                } else {
+                    frets = digits.split('').map((d, idx) => ({ fret: parseInt(d, 10), column: startCol + idx }));
+                }
+
+                frets.forEach(({ fret, column }) => {
+                    if (Number.isNaN(fret)) return;
+                    const token = noteFromGuitarPosition(stringName, fret);
+                    if (!token) return;
+                    events.push({ column, lineIndex, stringOrder: guitarStringOrder[normalizeGuitarStringName(stringName)] ?? lineIndex, token });
+                });
+            }
+            return events;
+        }
+
+        function parseGuitarTab(text) {
+            const events = [];
+            text.split(/\r?\n/).forEach((line, lineIndex) => {
+                const match = line.match(/^\s*([eEhHADG])\s*\|([\s\S]*)$/);
+                if (!match) return;
+                const stringName = normalizeGuitarStringName(match[1]);
+                const body = match[2];
+                events.push(...extractFretEventsFromTabBody(body, stringName, lineIndex));
+            });
+            events.sort((a, b) => a.column - b.column || a.stringOrder - b.stringOrder || a.lineIndex - b.lineIndex);
+            return events.map(event => event.token);
+        }
+
+        function convertGuitarTabToInput(tabId, targetId) {
+            const textarea = document.getElementById(tabId);
+            const input = document.getElementById(targetId);
+            const status = document.getElementById(`${tabId}-status`);
+            if (!textarea || !input) return;
+            const tokens = parseGuitarTab(textarea.value);
+            if (!tokens.length) {
+                if (status) status.textContent = 'Keine Bundzahlen gefunden.';
+                return;
+            }
+            rebuildInputFromPianoTokens(input, tokens);
+            if (targetId === 'finder-input') findBestHarp();
+            if (status) status.textContent = `${tokens.length} Note${tokens.length === 1 ? '' : 'n'} übernommen.`;
+        }
+
+        function resetGuitarTab(tabId) {
+            const textarea = document.getElementById(tabId);
+            const status = document.getElementById(`${tabId}-status`);
+            if (textarea) textarea.value = guitarTabTemplate;
+            if (status) status.textContent = '';
         }
 
 
@@ -870,6 +1162,74 @@
             })[0];
         }
 
+        function chooseBestMatchForGuitar(matches, request, lastHole) {
+            if (!matches.length) return null;
+            let candidates = [...matches];
+
+            if (typeof request.minHole === 'number') {
+                const filtered = candidates.filter(m => m.h >= request.minHole);
+                if (filtered.length) candidates = filtered;
+            }
+
+            if (typeof request.maxHole === 'number') {
+                const filtered = candidates.filter(m => m.h <= request.maxHole);
+                if (filtered.length) candidates = filtered;
+            }
+
+            const preferredHole = typeof request.preferredHole === 'number' ? request.preferredHole : lastHole;
+            return candidates.sort((a, b) => {
+                const distLast = Math.abs(a.h - lastHole) - Math.abs(b.h - lastHole);
+                if (Math.abs(distLast) > 0.001) return distLast;
+                const distPreferred = Math.abs(a.h - preferredHole) - Math.abs(b.h - preferredHole);
+                if (Math.abs(distPreferred) > 0.001) return distPreferred;
+                const quality = scoreMatch(b) - scoreMatch(a);
+                if (quality !== 0) return quality;
+                return a.h - b.h;
+            })[0];
+        }
+
+
+        function isSameHarpMatch(a, b) {
+            if (!a || !b) return false;
+            return a.h === b.h && a.t === b.t && a.n === b.n && Math.abs((a.f || 0) - (b.f || 0)) < 0.001;
+        }
+
+        function applyHarpPositionShift(matches, baseMatch, shift) {
+            if (!matches.length || !baseMatch || !shift) return baseMatch;
+            const sorted = [...matches].sort((a, b) => a.f - b.f || a.h - b.h || scoreMatch(b) - scoreMatch(a));
+            const currentIndex = Math.max(0, sorted.findIndex(m => isSameHarpMatch(m, baseMatch)));
+            const targetIndex = Math.max(0, Math.min(sorted.length - 1, currentIndex + shift));
+            return sorted[targetIndex] || baseMatch;
+        }
+
+        function chooseDisplayMatch(matches, request, lastHole, lastFreqByNote) {
+            if (!matches.length) return null;
+            const note = request.note;
+            const direction = request.direction || 'auto';
+            const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
+            const referenceFreq = direction === 'auto' ? null : (lastFreqByNote[note] ?? autoBest.f);
+            const baseMatch = request.fromGuitar
+                ? chooseBestMatchForGuitar(matches, request, lastHole)
+                : (request.fromPiano && typeof request.targetFreq === 'number'
+                    ? chooseBestMatchForPiano(matches, request.targetFreq, lastHole)
+                    : (direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq)));
+            return applyHarpPositionShift(matches, baseMatch, harpPositionShift);
+        }
+
+        function updateHarpPositionLabel() {
+            const label = document.getElementById('harp-position-label');
+            if (!label) return;
+            if (harpPositionShift === 0) label.textContent = 'Standard';
+            else if (harpPositionShift > 0) label.textContent = `+${harpPositionShift} Lage`;
+            else label.textContent = `${harpPositionShift} Lage`;
+        }
+
+        function changeHarpPositionShift(delta) {
+            harpPositionShift = Math.max(-3, Math.min(3, harpPositionShift + delta));
+            updateHarpPositionLabel();
+            rebuildAll();
+        }
+
         function extractNoteRequests(text) {
             const requests = [];
             let i = 0;
@@ -925,7 +1285,10 @@
                 let best = autoBest;
                 let directionWasPossible = false;
 
-                if (request.fromPiano && typeof request.targetFreq === 'number') {
+                if (request.fromGuitar) {
+                    best = chooseBestMatchForGuitar(matches, request, lastHole);
+                    directionWasPossible = typeof request.minHole === 'number' ? best.h >= request.minHole : true;
+                } else if (request.fromPiano && typeof request.targetFreq === 'number') {
                     best = chooseBestMatchForPiano(matches, request.targetFreq, lastHole);
                     directionWasPossible = Math.abs(best.f - request.targetFreq) < 80;
                 } else if (direction !== 'auto') {
@@ -1058,7 +1421,10 @@
         function markFinderNotesOnHarp(noteRequests = null) {
             clearFinderMarks();
             const finder = document.getElementById('finder-input');
-            const requests = noteRequests || extractNoteRequests((finder ? finder.value : '').toUpperCase().replace(/♭/g, 'B'));
+            // Wichtig: Wenn die Finder-Eingabe aus Piano- oder Gitarren-Tabulatur stammt,
+            // liegen zusätzliche Lagen-Informationen im Eingabefeld-Datensatz.
+            // Deshalb hier dieselbe Anforderungsliste verwenden wie bei der Finder-Bewertung.
+            const requests = noteRequests || (finder ? getNoteRequestsForInput(finder) : []);
             if (!requests.length) return;
 
             const root = document.getElementById('key-select').value;
@@ -1070,12 +1436,7 @@
                 const matches = getMatchesForNote(currentHarp, request.note);
                 if (!matches.length) return;
 
-                const direction = request.direction || 'auto';
-                const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
-                const referenceFreq = direction === 'auto' ? null : (lastFreqByNote[request.note] ?? autoBest.f);
-                const best = request.fromPiano && typeof request.targetFreq === 'number'
-                    ? chooseBestMatchForPiano(matches, request.targetFreq, lastHole)
-                    : (direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq));
+                const best = chooseDisplayMatch(matches, request, lastHole, lastFreqByNote);
                 if (!best) return;
 
                 lastHole = best.h;
@@ -1138,6 +1499,8 @@
             const data = getHarpData(root);
             const container = document.getElementById('harp-visual');
             document.getElementById('current-key-display').innerText = `${root}-HARP`;
+            const harpVisualKeyLabel = document.getElementById('harp-visual-key-label');
+            if (harpVisualKeyLabel) harpVisualKeyLabel.innerText = `${root}-HARP`;
             
             container.innerHTML = data.map(h => {
                 const displayBends = h.bends.slice(0, 2);
@@ -1183,6 +1546,29 @@
                             <div class="piano-keyboard" data-target="note-input-${lineIdx}"></div>
                         </div>
                     </details>
+                    <details class="guitar-tab-box no-print">
+                        <summary>
+                            <span>🎸 Gitarren-Tabulatur für diese Zeile anzeigen</span>
+                            <span class="guitar-tab-arrow">⌄</span>
+                        </summary>
+                        <div class="guitar-tab-panel">
+                            <div class="guitar-tab-hint">Tabulatur eingeben und danach in diese Notenzeile übernehmen. e-, H- und G-Saite werden als mittlere Harp-Lage übernommen.</div>
+                            <textarea id="guitar-tab-note-input-${lineIdx}" class="guitar-tab-input" spellcheck="false">e|----------------
+H|----------------
+G|----------------
+D|----------------
+A|----------------
+E|----------------</textarea>
+                            <div class="guitar-tab-actions">
+                                <button type="button" class="guitar-tab-btn" onclick="convertGuitarTabToInput('guitar-tab-note-input-${lineIdx}', 'note-input-${lineIdx}')">In Zeile übernehmen</button>
+                                <button type="button" class="guitar-tab-btn" onclick="resetGuitarTab('guitar-tab-note-input-${lineIdx}')">Leeren</button>
+                                <span id="guitar-tab-note-input-${lineIdx}-status" class="guitar-tab-status"></span>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                <div class="row-harp-indicator">
+                    <span class="row-harp-badge row-harp-key-label">${document.getElementById('key-select').value}-HARP</span>
                 </div>
                 <div class="display flex flex-wrap items-center mt-4 min-h-[90px]"></div>`;
             document.getElementById('editor').appendChild(div);
@@ -1198,6 +1584,8 @@
         function updateView(input, id) {
             const root = document.getElementById('key-select').value;
             const currentHarp = getHarpData(root);
+            const rowHarpKeyLabel = document.querySelector(`#row-${id} .row-harp-key-label`);
+            if (rowHarpKeyLabel) rowHarpKeyLabel.innerText = `${root}-HARP`;
             const container = document.querySelector(`#row-${id} .display`);
             let text = input.value.toUpperCase().replace(/♭/g, 'B');
             const pianoTokens = getPianoTokens(input);
@@ -1213,11 +1601,7 @@
                 const matches = getMatchesForNote(currentHarp, note);
 
                 if (matches.length > 0) {
-                    const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
-                    const referenceFreq = direction === 'auto' ? null : (lastFreqByNote[note] ?? autoBest.f);
-                    const best = request.fromPiano && typeof request.targetFreq === 'number'
-                        ? chooseBestMatchForPiano(matches, request.targetFreq, lastHole)
-                        : (direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq));
+                    const best = chooseDisplayMatch(matches, request, lastHole, lastFreqByNote);
                     lastHole = best.h;
                     lastFreqByNote[note] = best.f;
                     const node = document.createElement('div');
@@ -1253,7 +1637,10 @@
                             note: token.note,
                             direction: token.direction || 'auto',
                             targetFreq: typeof token.targetFreq === 'number' ? token.targetFreq : null,
-                            fromPiano: true
+                            fromPiano: true,
+                            fromGuitar: !!token.fromGuitar,
+                            minHole: typeof token.minHole === 'number' ? token.minHole : null,
+                            preferredHole: typeof token.preferredHole === 'number' ? token.preferredHole : null
                         });
                     }
                 });
@@ -1332,7 +1719,7 @@
             window.isGlobalPlaying = false;
         }
 
-        window.onload = () => { drawHarpMap(); renderAllPianos(); markFinderNotesOnHarp(); updateAudioButton(); };
+        window.onload = () => { drawHarpMap(); renderAllPianos(); updateHarpPositionLabel(); markFinderNotesOnHarp(); updateAudioButton(); };
     </script>
 </body>
 </html>
