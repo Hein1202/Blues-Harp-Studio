@@ -137,6 +137,33 @@
             border: 3px solid #e2e8f0;
             border-radius: 14px;
         }
+        .song-play-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+        .audio-unlock-btn {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            color: #334155;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+        }
+        .audio-unlock-btn:hover { border-color: #64748b; color: #0f172a; }
+        .audio-unlock-btn.ready { background: #ecfdf5; border-color: #86efac; color: #166534; }
+        .audio-status {
+            width: 100%;
+            text-align: center;
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #64748b;
+        }
 
         .toggle-btn {
             background: #e2e8f0;
@@ -429,7 +456,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 187 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 188 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -540,7 +567,11 @@
     </details>
 
     <div class="song-play-panel no-print">
-        <button id="master-play" onclick="playAllRows()" class="bg-slate-800 hover:bg-black text-white px-10 py-4 rounded-xl font-black text-sm transition-all shadow-md active:scale-95">▶ Song abspielen</button>
+        <div class="song-play-actions">
+            <button id="master-play" onclick="playAllRows()" class="bg-slate-800 hover:bg-black text-white px-10 py-4 rounded-xl font-black text-sm transition-all shadow-md active:scale-95">▶ Song abspielen</button>
+            <button id="audio-unlock" onclick="activateSound()" class="audio-unlock-btn">🔊 Klang aktivieren</button>
+            <span id="audio-status" class="audio-status">Auf Smartphone/Tablet bei Bedarf zuerst Klang aktivieren.</span>
+        </div>
     </div>
 
     <div id="editor">
@@ -571,6 +602,7 @@
     <script>
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
+        let isSoundReady = false;
         let isLowOctave = false;
 
         const baseFreqs = {
@@ -914,6 +946,66 @@
             return { key, score, possible: possible || 1 };
         }
 
+        function updateAudioStatus(message) {
+            const status = document.getElementById('audio-status');
+            if (status && message) status.textContent = message;
+        }
+
+        function updateAudioButton() {
+            const btn = document.getElementById('audio-unlock');
+            if (!btn) return;
+            if (isSoundReady) {
+                btn.classList.add('ready');
+                btn.textContent = '🔊 Klang aktiv';
+                updateAudioStatus('Klang ist aktiviert.');
+            } else {
+                btn.classList.remove('ready');
+                btn.textContent = '🔊 Klang aktivieren';
+            }
+        }
+
+        async function ensureAudioReady(playTestTone = false) {
+            if (!AudioCtx) {
+                updateAudioStatus('Klang wird von diesem Browser nicht unterstützt.');
+                return false;
+            }
+
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+                if (playTestTone && audioCtx.state === 'running') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.18);
+                }
+
+                isSoundReady = audioCtx.state === 'running';
+                updateAudioButton();
+                if (!isSoundReady) updateAudioStatus('Bitte Klang per Tippen aktivieren.');
+                return isSoundReady;
+            } catch (error) {
+                console.warn('Audio konnte nicht aktiviert werden:', error);
+                isSoundReady = false;
+                updateAudioButton();
+                updateAudioStatus('Klang konnte nicht aktiviert werden.');
+                return false;
+            }
+        }
+
+        async function activateSound() {
+            const ok = await ensureAudioReady(true);
+            if (ok) updateAudioStatus('Klang ist aktiviert. Du kannst jetzt abspielen.');
+        }
+
         function toggleLowOctave() {
             isLowOctave = !isLowOctave;
             const btn = document.getElementById('octave-toggle');
@@ -1182,8 +1274,8 @@
         }
 
         async function playNote(freq, duration) {
-            if (!audioCtx) audioCtx = new AudioCtx();
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            const ready = await ensureAudioReady(false);
+            if (!ready) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'triangle';
@@ -1240,7 +1332,7 @@
             window.isGlobalPlaying = false;
         }
 
-        window.onload = () => { drawHarpMap(); renderAllPianos(); markFinderNotesOnHarp(); };
+        window.onload = () => { drawHarpMap(); renderAllPianos(); markFinderNotesOnHarp(); updateAudioButton(); };
     </script>
 </body>
 </html>
