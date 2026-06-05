@@ -568,7 +568,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 199 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 200 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -1256,7 +1256,7 @@ E|----------------`;
                 if (h.b === note) matches.push({ h: h.h, t: 'b', n: note, f: h.f_b });
                 if (h.d === note) matches.push({ h: h.h, t: 'd', n: note, f: h.f_d });
                 h.bends.forEach(b => {
-                    if (b.n === note) matches.push({ h: h.h, t: 'bend', n: note, f: b.f, sub: b.t });
+                    if (b.n === note) matches.push({ h: h.h, t: 'bend', n: note, f: b.f, sub: b.t, level: b.level || 1 });
                 });
             });
             return matches;
@@ -1401,8 +1401,8 @@ E|----------------`;
                     f_d: getFreq(root, hole.d),
                     bends: []
                 };
-                if(hole.db) hole.db.forEach(st => data.bends.push({ n: getNoteName(root, st), f: getFreq(root, st), t: 'db' }));
-                if(hole.bb) hole.bb.forEach(st => data.bends.push({ n: getNoteName(root, st), f: getFreq(root, st), t: 'bb' }));
+                if(hole.db) hole.db.forEach((st, idx) => data.bends.push({ n: getNoteName(root, st), f: getFreq(root, st), t: 'db', level: idx + 1 }));
+                if(hole.bb) hole.bb.forEach((st, idx) => data.bends.push({ n: getNoteName(root, st), f: getFreq(root, st), t: 'bb', level: idx + 1 }));
                 return data;
             });
         }
@@ -1504,7 +1504,7 @@ E|----------------`;
             
             container.innerHTML = data.map(h => {
                 const displayBends = h.bends.slice(0, 2);
-                const bendsHtml = displayBends.map(b => `<span class="note-bend harp-note-marker" data-hole="${h.h}" data-mode="bend" data-sub="${b.t}" data-note="${b.n}" data-freq="${b.f}">${b.n}</span>`).join('');
+                const bendsHtml = displayBends.map(b => `<span class="note-bend harp-note-marker" data-hole="${h.h}" data-mode="bend" data-sub="${b.t}" data-level="${b.level || 1}" data-note="${b.n}" data-freq="${b.f}">${b.n}</span>`).join('');
                 
                 return `
                     <div class="harp-hole" id="vis-hole-${h.h}">
@@ -1613,7 +1613,10 @@ E|----------------</textarea>
                     node.dataset.activeClass = best.t === 'b' ? 'active-blow' : best.t === 'd' ? 'active-draw' : 'active-bend';
                     
                     let symbol = best.t === 'b' ? '↑' : '↓';
-                    if(best.t === 'bend') symbol = best.sub === 'db' ? '↓\'' : '↑\'';
+                    if(best.t === 'bend') {
+                        const bendMarks = '\''.repeat(best.level || 1);
+                        symbol = best.sub === 'db' ? `↓${bendMarks}` : `↑${bendMarks}`;
+                    }
 
                     const directionLabel = direction === 'higher' ? '+' : direction === 'lower' ? '-' : '';
 
