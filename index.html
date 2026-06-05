@@ -500,6 +500,24 @@
             color: #334155;
         }
         .piano-action-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
+        .input-clear-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .input-clear-btn {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 8px 12px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            color: #334155;
+            transition: all 0.15s ease;
+        }
+        .input-clear-btn:hover { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
 
 
         .guitar-tab-box {
@@ -568,7 +586,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 200 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 202 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -584,6 +602,7 @@
         </h2>
         <div class="flex flex-col md:flex-row gap-4 mb-4">
             <input type="text" id="finder-input" oninput="findBestHarp()" placeholder="Gib die Melodie ein (z.B. G A H Bb C#)..." class="flex-1 p-3 rounded-xl border-2 border-pink-200 outline-none focus:border-pink-500 font-mono text-sm shadow-inner uppercase">
+            <button type="button" class="input-clear-btn" onclick="clearInputField('finder-input')">Eingabe leeren</button>
             <div id="finder-results" class="flex flex-wrap items-center">
                 <span class="text-[10px] font-bold text-pink-400 italic">Hier erscheinen Vorschläge...</span>
             </div>
@@ -722,6 +741,9 @@ E|----------------</textarea>
             </div>
             <div class="mb-6">
                 <input type="text" id="note-input-1" class="input-field no-print" placeholder="Notennamen eingeben (z.B. C D E F G, D+ höher, D- tiefer)..." oninput="updateView(this, 1)">
+                <div class="input-clear-actions no-print">
+                    <button type="button" class="input-clear-btn" onclick="clearInputField('note-input-1')">Eingabe leeren</button>
+                </div>
                 <details class="piano-box no-print">
                     <summary>
                         <span>🎹 Piano-Eingabe für diese Zeile anzeigen</span>
@@ -795,9 +817,9 @@ E|----------------</textarea>
 
         const pianoNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "Bb", "H"];
         const pianoOctaves = [
-            { label: 'tiefe Lage', suffix: '-', octave: 0, helper: 'fügt z. B. A- ein' },
-            { label: 'normale Lage', suffix: '', octave: 1, helper: 'entspricht der normalen Piano-Lage', isNormal: true },
-            { label: 'hohe Lage', suffix: '+', octave: 2, helper: 'fügt z. B. A+ ein' }
+            { label: 'tiefe Lage', suffix: '-', octave: 0, helper: 'bevorzugt Harp-Kanäle 1-3', minHole: 1, maxHole: 3, preferredHole: 2 },
+            { label: 'normale Lage', suffix: '', octave: 1, helper: 'bevorzugt Harp-Kanäle 4-7', minHole: 4, maxHole: 7, preferredHole: 5, isNormal: true },
+            { label: 'hohe Lage', suffix: '+', octave: 2, helper: 'bevorzugt Harp-Kanäle 7-10', minHole: 7, maxHole: 10, preferredHole: 8 }
         ];
 
         function isBlackPianoKey(note) {
@@ -816,7 +838,7 @@ E|----------------</textarea>
                 pianoNotes.forEach(note => {
                     const blackClass = isBlackPianoKey(note) ? ' black-key' : '';
                     const safeSuffix = octave.suffix;
-                    html += `<button type="button" class="piano-key${blackClass}" onclick="insertPianoToken('${targetId}', '${note}', '${safeSuffix}', ${octave.octave})">${note}</button>`;
+                    html += `<button type="button" class="piano-key${blackClass}" onclick="insertPianoToken('${targetId}', '${note}', '${safeSuffix}', ${octave.octave}, ${octave.minHole || 'null'}, ${octave.maxHole || 'null'}, ${octave.preferredHole || 'null'})">${note}</button>`;
                 });
                 html += `</div>`;
             });
@@ -826,6 +848,7 @@ E|----------------</textarea>
                 <div class="piano-actions">
                     <button type="button" class="piano-action-btn" onclick="insertPianoSpace('${targetId}')">Leerzeichen</button>
                     <button type="button" class="piano-action-btn" onclick="deleteLastPianoToken('${targetId}')">Letzte Note löschen</button>
+                    <button type="button" class="piano-action-btn" onclick="clearInputField('${targetId}')">Eingabe leeren</button>
                 </div>`;
 
             container.innerHTML = html;
@@ -897,7 +920,8 @@ E|----------------</textarea>
                         fromPiano: true,
                         fromGuitar: !!t.fromGuitar,
                         minHole: typeof t.minHole === 'number' ? t.minHole : null,
-                        preferredHole: typeof t.preferredHole === 'number' ? t.preferredHole : null
+                        preferredHole: typeof t.preferredHole === 'number' ? t.preferredHole : null,
+                        maxHole: typeof t.maxHole === 'number' ? t.maxHole : null
                     }));
             }
             return extractNoteRequests(input.value);
@@ -917,7 +941,7 @@ E|----------------</textarea>
             triggerInputUpdate(input);
         }
 
-        function insertPianoToken(targetId, note, suffix = '', octave = 1) {
+        function insertPianoToken(targetId, note, suffix = '', octave = 1, minHole = null, maxHole = null, preferredHole = null) {
             const input = document.getElementById(targetId);
             if (!input) return;
             const tokens = getPianoTokens(input) || [];
@@ -928,7 +952,10 @@ E|----------------</textarea>
                 suffix,
                 direction,
                 octave,
-                targetFreq: getPianoTargetFreq(note, octave)
+                targetFreq: getPianoTargetFreq(note, octave),
+                minHole: typeof minHole === 'number' ? minHole : null,
+                maxHole: typeof maxHole === 'number' ? maxHole : null,
+                preferredHole: typeof preferredHole === 'number' ? preferredHole : null
             });
             rebuildInputFromPianoTokens(input, tokens);
         }
@@ -961,6 +988,16 @@ E|----------------</textarea>
             input.setSelectionRange(newCursor, newCursor);
             clearPianoTokens(input);
             triggerInputUpdate(input);
+        }
+
+        function clearInputField(targetId) {
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            input.value = '';
+            clearPianoTokens(input);
+            input.focus();
+            triggerInputUpdate(input);
+            if (targetId === 'finder-input') findBestHarp();
         }
 
         const guitarStringOffsets = { "E": 4, "A": 9, "D": 2, "G": 7, "H": 11, "e": 4 };
@@ -1150,15 +1187,39 @@ E|----------------`;
             return matches.reduce((p, c) => Math.abs(c.h - lastHole) < Math.abs(p.h - lastHole) ? c : p);
         }
 
-        function chooseBestMatchForPiano(matches, targetFreq, lastHole) {
+        function chooseBestMatchForPiano(matches, request, lastHole) {
             if (!matches.length) return null;
-            if (typeof targetFreq !== 'number' || Number.isNaN(targetFreq)) {
-                return chooseBestMatch(matches, lastHole, 'auto', null);
+            let candidates = [...matches];
+
+            if (typeof request.minHole === 'number') {
+                const filtered = candidates.filter(m => m.h >= request.minHole);
+                if (filtered.length) candidates = filtered;
             }
-            return [...matches].sort((a, b) => {
-                const diff = Math.abs(a.f - targetFreq) - Math.abs(b.f - targetFreq);
-                if (Math.abs(diff) > 0.001) return diff;
-                return Math.abs(a.h - lastHole) - Math.abs(b.h - lastHole);
+
+            if (typeof request.maxHole === 'number') {
+                const filtered = candidates.filter(m => m.h <= request.maxHole);
+                if (filtered.length) candidates = filtered;
+            }
+
+            const preferredHole = typeof request.preferredHole === 'number' ? request.preferredHole : lastHole;
+            const targetFreq = typeof request.targetFreq === 'number' && !Number.isNaN(request.targetFreq) ? request.targetFreq : null;
+
+            return candidates.sort((a, b) => {
+                const distPreferred = Math.abs(a.h - preferredHole) - Math.abs(b.h - preferredHole);
+                if (Math.abs(distPreferred) > 0.001) return distPreferred;
+
+                const quality = scoreMatch(b) - scoreMatch(a);
+                if (quality !== 0) return quality;
+
+                const distLast = Math.abs(a.h - lastHole) - Math.abs(b.h - lastHole);
+                if (Math.abs(distLast) > 0.001) return distLast;
+
+                if (targetFreq !== null) {
+                    const freqDiff = Math.abs(a.f - targetFreq) - Math.abs(b.f - targetFreq);
+                    if (Math.abs(freqDiff) > 0.001) return freqDiff;
+                }
+
+                return a.h - b.h;
             })[0];
         }
 
@@ -1210,8 +1271,8 @@ E|----------------`;
             const referenceFreq = direction === 'auto' ? null : (lastFreqByNote[note] ?? autoBest.f);
             const baseMatch = request.fromGuitar
                 ? chooseBestMatchForGuitar(matches, request, lastHole)
-                : (request.fromPiano && typeof request.targetFreq === 'number'
-                    ? chooseBestMatchForPiano(matches, request.targetFreq, lastHole)
+                : (request.fromPiano
+                    ? chooseBestMatchForPiano(matches, request, lastHole)
                     : (direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq)));
             return applyHarpPositionShift(matches, baseMatch, harpPositionShift);
         }
@@ -1288,9 +1349,9 @@ E|----------------`;
                 if (request.fromGuitar) {
                     best = chooseBestMatchForGuitar(matches, request, lastHole);
                     directionWasPossible = typeof request.minHole === 'number' ? best.h >= request.minHole : true;
-                } else if (request.fromPiano && typeof request.targetFreq === 'number') {
-                    best = chooseBestMatchForPiano(matches, request.targetFreq, lastHole);
-                    directionWasPossible = Math.abs(best.f - request.targetFreq) < 80;
+                } else if (request.fromPiano) {
+                    best = chooseBestMatchForPiano(matches, request, lastHole);
+                    directionWasPossible = typeof request.minHole === 'number' ? best.h >= request.minHole : true;
                 } else if (direction !== 'auto') {
                     const referenceFreq = lastFreqByNote[request.note] ?? autoBest.f;
                     best = chooseBestMatch(matches, lastHole, direction, referenceFreq);
@@ -1537,6 +1598,9 @@ E|----------------`;
                 </div>
                 <div class="mb-6">
                     <input type="text" id="note-input-${lineIdx}" class="input-field no-print" placeholder="... (D+ höher, D- tiefer)" oninput="updateView(this, ${lineIdx})">
+                    <div class="input-clear-actions no-print">
+                        <button type="button" class="input-clear-btn" onclick="clearInputField('note-input-${lineIdx}')">Eingabe leeren</button>
+                    </div>
                     <details class="piano-box no-print">
                         <summary>
                             <span>🎹 Piano-Eingabe für diese Zeile anzeigen</span>
@@ -1643,7 +1707,8 @@ E|----------------</textarea>
                             fromPiano: true,
                             fromGuitar: !!token.fromGuitar,
                             minHole: typeof token.minHole === 'number' ? token.minHole : null,
-                            preferredHole: typeof token.preferredHole === 'number' ? token.preferredHole : null
+                            preferredHole: typeof token.preferredHole === 'number' ? token.preferredHole : null,
+                            maxHole: typeof token.maxHole === 'number' ? token.maxHole : null
                         });
                     }
                 });
