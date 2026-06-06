@@ -586,7 +586,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 202 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 205 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -818,7 +818,7 @@ E|----------------</textarea>
         const pianoNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "Bb", "H"];
         const pianoOctaves = [
             { label: 'tiefe Lage', suffix: '-', octave: 0, helper: 'bevorzugt Harp-Kanäle 1-3', minHole: 1, maxHole: 3, preferredHole: 2 },
-            { label: 'normale Lage', suffix: '', octave: 1, helper: 'bevorzugt Harp-Kanäle 4-7', minHole: 4, maxHole: 7, preferredHole: 5, isNormal: true },
+            { label: 'normale Lage', suffix: '', octave: 1, helper: 'bevorzugt Harp-Kanäle 4-7 · Schwerpunkt Kanal 6', minHole: 4, maxHole: 7, preferredHole: 6, isNormal: true },
             { label: 'hohe Lage', suffix: '+', octave: 2, helper: 'bevorzugt Harp-Kanäle 7-10', minHole: 7, maxHole: 10, preferredHole: 8 }
         ];
 
@@ -863,10 +863,17 @@ E|----------------</textarea>
             input.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
+        function normalizeStoredInputText(text) {
+            return String(text || '').trim().replace(/\s+/g, ' ');
+        }
+
         function getPianoTokens(input) {
             try {
-                if (input.dataset.pianoText === input.value && input.dataset.pianoTokens) {
-                    return JSON.parse(input.dataset.pianoTokens);
+                if (input.dataset.pianoTokens) {
+                    const storedText = input.dataset.pianoText || '';
+                    if (storedText === input.value || normalizeStoredInputText(storedText) === normalizeStoredInputText(input.value)) {
+                        return JSON.parse(input.dataset.pianoTokens);
+                    }
                 }
             } catch (e) {}
             return null;
@@ -880,6 +887,11 @@ E|----------------</textarea>
         function clearPianoTokens(input) {
             delete input.dataset.pianoTokens;
             delete input.dataset.pianoText;
+            delete input.dataset.inputSource;
+            delete input.dataset.pianoFallbackMinHole;
+            delete input.dataset.pianoFallbackMaxHole;
+            delete input.dataset.pianoFallbackPreferredHole;
+            delete input.dataset.pianoFallbackOctave;
         }
 
         function getBaseFreqForNote(note) {
@@ -908,6 +920,12 @@ E|----------------</textarea>
             triggerInputUpdate(input);
         }
 
+        function getPianoLaneDefaults(direction = 'auto') {
+            if (direction === 'lower') return { minHole: 1, maxHole: 3, preferredHole: 2, octave: 0 };
+            if (direction === 'higher') return { minHole: 7, maxHole: 10, preferredHole: 8, octave: 2 };
+            return { minHole: 4, maxHole: 7, preferredHole: 6, octave: 1 };
+        }
+
         function getNoteRequestsForInput(input) {
             const tokens = getPianoTokens(input);
             if (tokens) {
@@ -924,7 +942,23 @@ E|----------------</textarea>
                         maxHole: typeof t.maxHole === 'number' ? t.maxHole : null
                     }));
             }
-            return extractNoteRequests(input.value);
+
+            const requests = extractNoteRequests(input.value);
+            if (input.dataset.inputSource === 'piano') {
+                return requests.map(request => {
+                    const lane = getPianoLaneDefaults(request.direction || 'auto');
+                    return {
+                        ...request,
+                        fromPiano: true,
+                        fromGuitar: false,
+                        targetFreq: getPianoTargetFreq(request.note, lane.octave),
+                        minHole: lane.minHole,
+                        maxHole: lane.maxHole,
+                        preferredHole: lane.preferredHole
+                    };
+                });
+            }
+            return requests;
         }
 
         function insertAtCursor(input, value) {
@@ -946,6 +980,11 @@ E|----------------</textarea>
             if (!input) return;
             const tokens = getPianoTokens(input) || [];
             const direction = suffix === '+' ? 'higher' : suffix === '-' ? 'lower' : 'auto';
+            input.dataset.inputSource = 'piano';
+            input.dataset.pianoFallbackMinHole = typeof minHole === 'number' ? String(minHole) : '';
+            input.dataset.pianoFallbackMaxHole = typeof maxHole === 'number' ? String(maxHole) : '';
+            input.dataset.pianoFallbackPreferredHole = typeof preferredHole === 'number' ? String(preferredHole) : '';
+            input.dataset.pianoFallbackOctave = String(octave);
             tokens.push({
                 type: 'note',
                 note,
@@ -1187,8 +1226,36 @@ E|----------------`;
             return matches.reduce((p, c) => Math.abs(c.h - lastHole) < Math.abs(p.h - lastHole) ? c : p);
         }
 
-        function chooseBestMatchForPiano(matches, request, lastHole) {
+        function chooseBestMatchForPiano(matches, request, lastHole, previousMatch = null) {
             if (!matches.length) return null;
+            const direction = request.direction || 'auto';
+
+            // Bei Piano-Eingaben mit + oder - soll die Lage nicht isoliert als
+            // feste Kanalgruppe verstanden werden. Entscheidend ist der
+            // melodische Verlauf: Ein tieferes H nach einem D soll die nächst
+            // passende tiefere H-Position wählen, nicht automatisch ganz nach
+            // unten auf Kanal 1-3 springen.
+            if (previousMatch && (direction === 'lower' || direction === 'higher')) {
+                const relativeCandidates = matches.filter(m => direction === 'lower'
+                    ? m.f < previousMatch.f - 0.001
+                    : m.f > previousMatch.f + 0.001);
+
+                if (relativeCandidates.length) {
+                    return relativeCandidates.sort((a, b) => {
+                        const freqDistance = Math.abs(a.f - previousMatch.f) - Math.abs(b.f - previousMatch.f);
+                        if (Math.abs(freqDistance) > 0.001) return freqDistance;
+
+                        const holeDistance = Math.abs(a.h - previousMatch.h) - Math.abs(b.h - previousMatch.h);
+                        if (Math.abs(holeDistance) > 0.001) return holeDistance;
+
+                        const quality = scoreMatch(b) - scoreMatch(a);
+                        if (quality !== 0) return quality;
+
+                        return a.h - b.h;
+                    })[0];
+                }
+            }
+
             let candidates = [...matches];
 
             if (typeof request.minHole === 'number') {
@@ -1263,7 +1330,7 @@ E|----------------`;
             return sorted[targetIndex] || baseMatch;
         }
 
-        function chooseDisplayMatch(matches, request, lastHole, lastFreqByNote) {
+        function chooseDisplayMatch(matches, request, lastHole, lastFreqByNote, previousMatch = null) {
             if (!matches.length) return null;
             const note = request.note;
             const direction = request.direction || 'auto';
@@ -1272,7 +1339,7 @@ E|----------------`;
             const baseMatch = request.fromGuitar
                 ? chooseBestMatchForGuitar(matches, request, lastHole)
                 : (request.fromPiano
-                    ? chooseBestMatchForPiano(matches, request, lastHole)
+                    ? chooseBestMatchForPiano(matches, request, lastHole, previousMatch)
                     : (direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq)));
             return applyHarpPositionShift(matches, baseMatch, harpPositionShift);
         }
@@ -1328,11 +1395,35 @@ E|----------------`;
             return match.t === 'bend' ? 1 : 2;
         }
 
+        function getLaneTieBreakScore(match, request) {
+            if (!match || (!request.fromPiano && !request.fromGuitar)) return 0;
+
+            let targetHole = typeof request.preferredHole === 'number' ? request.preferredHole : null;
+
+            // Für Piano- und Gitarren-Tab-Eingaben soll die Lageninformation bei der
+            // Harp-Auswahl stärker wirken. Die normale/mittlere Lage orientiert sich
+            // dabei musikalisch an Kanal 6, damit Piano und Gitarren-Tab bei gleicher
+            // Melodie möglichst dieselbe Harp-Ansicht ergeben.
+            if (typeof request.minHole === 'number' && request.minHole >= 7) targetHole = 8;
+            else if (typeof request.maxHole === 'number' && request.maxHole <= 3) targetHole = 2;
+            else if (typeof request.minHole === 'number' && request.minHole >= 4) targetHole = 6;
+
+            if (targetHole === null) return 0;
+
+            let laneScore = 30 - (Math.abs(match.h - targetHole) * 4);
+            if (typeof request.minHole === 'number' && match.h >= request.minHole) laneScore += 3;
+            if (typeof request.maxHole === 'number' && match.h <= request.maxHole) laneScore += 3;
+            laneScore += match.t === 'bend' ? -(match.level || 1) : 2;
+            return laneScore;
+        }
+
         function scoreHarpForRequests(key, noteRequests) {
             const data = getHarpData(key);
             let score = 0;
+            let laneScore = 0;
             let possible = 0;
             let lastHole = 4;
+            let previousMatch = null;
             const lastFreqByNote = {};
 
             noteRequests.forEach(request => {
@@ -1350,7 +1441,7 @@ E|----------------`;
                     best = chooseBestMatchForGuitar(matches, request, lastHole);
                     directionWasPossible = typeof request.minHole === 'number' ? best.h >= request.minHole : true;
                 } else if (request.fromPiano) {
-                    best = chooseBestMatchForPiano(matches, request, lastHole);
+                    best = chooseBestMatchForPiano(matches, request, lastHole, previousMatch);
                     directionWasPossible = typeof request.minHole === 'number' ? best.h >= request.minHole : true;
                 } else if (direction !== 'auto') {
                     const referenceFreq = lastFreqByNote[request.note] ?? autoBest.f;
@@ -1361,13 +1452,15 @@ E|----------------`;
                 }
 
                 score += scoreMatch(best);
+                laneScore += getLaneTieBreakScore(best, request);
                 if (direction !== 'auto' && directionWasPossible) score += 1;
 
                 lastHole = best.h;
+                previousMatch = best;
                 lastFreqByNote[request.note] = best.f;
             });
 
-            return { key, score, possible: possible || 1 };
+            return { key, score, laneScore, possible: possible || 1 };
         }
 
         function updateAudioStatus(message) {
@@ -1491,16 +1584,18 @@ E|----------------`;
             const root = document.getElementById('key-select').value;
             const currentHarp = getHarpData(root);
             let lastHole = 4;
+            let previousMatch = null;
             const lastFreqByNote = {};
 
             requests.forEach(request => {
                 const matches = getMatchesForNote(currentHarp, request.note);
                 if (!matches.length) return;
 
-                const best = chooseDisplayMatch(matches, request, lastHole, lastFreqByNote);
+                const best = chooseDisplayMatch(matches, request, lastHole, lastFreqByNote, previousMatch);
                 if (!best) return;
 
                 lastHole = best.h;
+                previousMatch = best;
                 lastFreqByNote[request.note] = best.f;
 
                 const hole = document.getElementById(`vis-hole-${best.h}`);
@@ -1536,7 +1631,7 @@ E|----------------`;
             // Bei + und - bekommt eine Harp zusätzlich Punkte, wenn wirklich eine höhere/tiefere Lage vorhanden ist.
             const rankings = keysToTest
                 .map(key => scoreHarpForRequests(key, noteRequests))
-                .sort((a, b) => b.score - a.score);
+                .sort((a, b) => b.score - a.score || b.laneScore - a.laneScore);
 
             const maxScore = rankings[0].score;
 
@@ -1657,6 +1752,7 @@ E|----------------</textarea>
             container.innerHTML = '';
             let i = 0;
             let lastHole = 4;
+            let previousMatch = null;
             const lastFreqByNote = {};
 
             const renderRequest = (request) => {
@@ -1665,8 +1761,9 @@ E|----------------</textarea>
                 const matches = getMatchesForNote(currentHarp, note);
 
                 if (matches.length > 0) {
-                    const best = chooseDisplayMatch(matches, request, lastHole, lastFreqByNote);
+                    const best = chooseDisplayMatch(matches, request, lastHole, lastFreqByNote, previousMatch);
                     lastHole = best.h;
+                    previousMatch = best;
                     lastFreqByNote[note] = best.f;
                     const node = document.createElement('div');
                     node.className = 'tab-node';
