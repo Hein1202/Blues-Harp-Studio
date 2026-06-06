@@ -518,6 +518,27 @@
             transition: all 0.15s ease;
         }
         .input-clear-btn:hover { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+        .global-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+            margin-top: 1.5rem;
+            margin-bottom: 4rem;
+        }
+        .all-clear-btn {
+            background: #fff1f2;
+            border: 2px solid #fecdd3;
+            border-radius: 12px;
+            padding: 11px 16px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #9f1239;
+            transition: all 0.15s ease;
+        }
+        .all-clear-btn:hover { background: #ffe4e6; border-color: #fb7185; color: #881337; }
 
 
         .guitar-tab-box {
@@ -586,7 +607,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 205 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 208 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -607,15 +628,6 @@
                 <span class="text-[10px] font-bold text-pink-400 italic">Hier erscheinen Vorschläge...</span>
             </div>
         </div>
-        <details class="piano-box no-print">
-            <summary>
-                <span>🎹 Piano-Eingabe für Harp-Finder anzeigen</span>
-                <span class="piano-arrow">⌄</span>
-            </summary>
-            <div class="piano-panel">
-                <div class="piano-keyboard" data-target="finder-input"></div>
-            </div>
-        </details>
         <details class="guitar-tab-box no-print">
             <summary>
                 <span>🎸 Gitarren-Tabulatur für Harp-Finder anzeigen</span>
@@ -744,15 +756,6 @@ E|----------------</textarea>
                 <div class="input-clear-actions no-print">
                     <button type="button" class="input-clear-btn" onclick="clearInputField('note-input-1')">Eingabe leeren</button>
                 </div>
-                <details class="piano-box no-print">
-                    <summary>
-                        <span>🎹 Piano-Eingabe für diese Zeile anzeigen</span>
-                        <span class="piano-arrow">⌄</span>
-                    </summary>
-                    <div class="piano-panel">
-                        <div class="piano-keyboard" data-target="note-input-1"></div>
-                    </div>
-                </details>
                 <details class="guitar-tab-box no-print">
                     <summary>
                         <span>🎸 Gitarren-Tabulatur für diese Zeile anzeigen</span>
@@ -781,9 +784,12 @@ E|----------------</textarea>
         </div>
     </div>
 
-    <button onclick="addRow()" class="no-print mt-6 mb-16 flex items-center gap-3 text-xs font-black uppercase tracking-[0.25em] text-slate-400 hover:text-blue-600 transition-all group">
-        <span class="text-2xl group-hover:scale-125 transition-transform">+</span> Neue Zeile hinzufügen
-    </button>
+    <div class="global-actions no-print">
+        <button onclick="addRow()" class="flex items-center gap-3 text-xs font-black uppercase tracking-[0.25em] text-slate-400 hover:text-blue-600 transition-all group">
+            <span class="text-2xl group-hover:scale-125 transition-transform">+</span> Neue Zeile hinzufügen
+        </button>
+        <button type="button" class="all-clear-btn" onclick="clearAllInputs()">Alle Eingaben löschen</button>
+    </div>
 
     <script>
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1039,6 +1045,31 @@ E|----------------</textarea>
             if (targetId === 'finder-input') findBestHarp();
         }
 
+        function clearAllInputs() {
+            document.querySelectorAll('input.input-field').forEach(input => {
+                input.value = '';
+                clearPianoTokens(input);
+                triggerInputUpdate(input);
+            });
+
+            const finderInput = document.getElementById('finder-input');
+            if (finderInput) {
+                finderInput.value = '';
+                clearPianoTokens(finderInput);
+            }
+
+            document.querySelectorAll('textarea.guitar-tab-input').forEach(textarea => {
+                textarea.value = guitarTabTemplate;
+                const status = document.getElementById(`${textarea.id}-status`);
+                if (status) status.textContent = '';
+            });
+
+            clearFinderMarks();
+            findBestHarp();
+            rebuildAll();
+            if (finderInput) finderInput.focus();
+        }
+
         const guitarStringOffsets = { "E": 4, "A": 9, "D": 2, "G": 7, "H": 11, "e": 4 };
         const guitarOpenSemitonesFromC4 = { "E": -20, "A": -15, "D": -10, "G": -5, "H": -1, "e": 4 };
         const guitarStringOrder = { "e": 0, "H": 1, "G": 2, "D": 3, "A": 4, "E": 5 };
@@ -1109,9 +1140,12 @@ E|----------------`;
                 // Gitarren-Tabs werden spaltenweise von links nach rechts gelesen.
                 // Direkt nebeneinander stehende gleiche Ziffern wie "33" oder "66"
                 // werden als zwei einzelne gespielte Töne behandelt.
-                // Unterschiedliche zweistellige Zahlen wie 10, 11, 12 ... bleiben als ein Bund erhalten.
+                // Zweistellige Bünde wie 10, 11, 12 ... bleiben als ein Bund erhalten.
+                // Wichtig: Eine führende 0 wie bei "03" ist KEIN Bund 3,
+                // sondern zwei einzelne Töne: Leersaite 0 und danach Bund 3.
                 let frets;
-                if (digits.length === 2 && digits[0] !== digits[1]) {
+                const shouldSplitDigits = digits.length !== 2 || digits[0] === digits[1] || digits[0] === '0';
+                if (!shouldSplitDigits) {
                     const possibleFret = parseInt(digits, 10);
                     frets = possibleFret <= 24 ? [{ fret: possibleFret, column: startCol }] : digits.split('').map((d, idx) => ({ fret: parseInt(d, 10), column: startCol + idx }));
                 } else {
@@ -1696,15 +1730,6 @@ E|----------------`;
                     <div class="input-clear-actions no-print">
                         <button type="button" class="input-clear-btn" onclick="clearInputField('note-input-${lineIdx}')">Eingabe leeren</button>
                     </div>
-                    <details class="piano-box no-print">
-                        <summary>
-                            <span>🎹 Piano-Eingabe für diese Zeile anzeigen</span>
-                            <span class="piano-arrow">⌄</span>
-                        </summary>
-                        <div class="piano-panel">
-                            <div class="piano-keyboard" data-target="note-input-${lineIdx}"></div>
-                        </div>
-                    </details>
                     <details class="guitar-tab-box no-print">
                         <summary>
                             <span>🎸 Gitarren-Tabulatur für diese Zeile anzeigen</span>
@@ -1731,7 +1756,6 @@ E|----------------</textarea>
                 </div>
                 <div class="display flex flex-wrap items-center mt-4 min-h-[90px]"></div>`;
             document.getElementById('editor').appendChild(div);
-            renderPianoKeyboard(div.querySelector('.piano-keyboard'));
         }
 
         function rebuildAll() {
@@ -1884,7 +1908,7 @@ E|----------------</textarea>
             window.isGlobalPlaying = false;
         }
 
-        window.onload = () => { drawHarpMap(); renderAllPianos(); updateHarpPositionLabel(); markFinderNotesOnHarp(); updateAudioButton(); };
+        window.onload = () => { drawHarpMap(); updateHarpPositionLabel(); markFinderNotesOnHarp(); updateAudioButton(); };
     </script>
 </body>
 </html>
