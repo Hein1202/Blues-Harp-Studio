@@ -771,7 +771,47 @@
         .guitar-tab-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
         .guitar-tab-status { font-size: 0.72rem; font-weight: 800; color: #64748b; }
 
-        @media print { .no-print { display: none !important; } .line-row { border: none; border-bottom: 2px solid #eee; padding-left: 0; } }
+        .print-song-header { display: none; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-song-header {
+                display: block !important;
+                margin: 0 0 24px 0;
+                padding: 0 0 14px 0;
+                border-bottom: 3px solid #1e293b;
+            }
+            .print-song-title {
+                font-size: 1.65rem;
+                font-weight: 900;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: #0f172a;
+                margin-bottom: 8px;
+            }
+            .print-song-key {
+                display: inline-block;
+                font-size: 0.9rem;
+                font-weight: 900;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: #1e40af;
+            }
+            *, *::before, *::after {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            .display, .tab-node, .tab-node span, .arrow, .blow, .draw, .bend {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            .tab-node .arrow.blow, .tab-node span.arrow.blow, span.arrow.blow, .arrow.blow, .blow { color: #2563eb !important; }
+            .tab-node .arrow.draw, .tab-node span.arrow.draw, span.arrow.draw, .arrow.draw, .draw { color: #dc2626 !important; }
+            .tab-node .arrow.bend, .tab-node span.arrow.bend, span.arrow.bend, .arrow.bend, .bend { color: #d97706 !important; }
+            .line-row { border: none; border-bottom: 2px solid #eee; padding-left: 0; }
+            .line-row .row-harp-indicator { display: none !important; }
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 max-w-5xl mx-auto">
@@ -781,13 +821,18 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 222 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 227 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             </button>
         </div>
     </header>
+
+    <div id="print-song-header" class="print-song-header">
+        <div id="print-song-title" class="print-song-title">Ohne Titel</div>
+        <div id="print-song-key" class="print-song-key">C-HARP</div>
+    </div>
 
     <!-- Harp-Finder Sektion -->
     <div class="finder-card no-print">
@@ -946,11 +991,14 @@ E|----------------</textarea>
         <div class="song-save-title">Melodien speichern</div>
         <div class="song-save-actions">
             <button type="button" class="song-save-btn primary" onclick="saveCurrentSong()">Melodie speichern</button>
-            <select id="saved-song-select" class="song-save-select">
+            <select id="saved-song-select" class="song-save-select" onchange="updatePrintSongHeader()">
                 <option value="">Keine gespeicherte Melodie</option>
             </select>
             <button type="button" class="song-save-btn" onclick="loadSelectedSong()">Laden</button>
             <button type="button" class="song-save-btn danger" onclick="deleteSelectedSong()">Löschen</button>
+            <button type="button" class="song-save-btn" onclick="exportCurrentSongAsJson()">Als JSON speichern</button>
+            <button type="button" class="song-save-btn" onclick="document.getElementById('song-json-import').click()">JSON laden</button>
+            <input type="file" id="song-json-import" accept="application/json,.json" class="hidden" onchange="importSongFromJsonFile(this)">
             <span id="song-save-status" class="song-save-status"></span>
         </div>
     </div>
@@ -2312,6 +2360,7 @@ E|----------------`;
 
 
         const savedSongsStorageKey = 'harpStudioSavedSongsV1';
+        let currentSongTitle = '';
 
         function getSavedSongs() {
             try {
@@ -2331,6 +2380,25 @@ E|----------------`;
             const status = document.getElementById('song-save-status');
             if (status) status.textContent = message || '';
         }
+
+        function getSelectedSongNameForPrint() {
+            const select = document.getElementById('saved-song-select');
+            if (select && select.value) {
+                const selectedOption = select.options[select.selectedIndex];
+                return selectedOption ? selectedOption.textContent.trim() || 'Ohne Titel' : 'Ohne Titel';
+            }
+            return currentSongTitle || 'Ohne Titel';
+        }
+
+        function updatePrintSongHeader() {
+            const title = document.getElementById('print-song-title');
+            const key = document.getElementById('print-song-key');
+            const keySelect = document.getElementById('key-select');
+            if (title) title.textContent = getSelectedSongNameForPrint();
+            if (key) key.textContent = `${keySelect ? keySelect.value : 'C'}-HARP`;
+        }
+
+        window.addEventListener('beforeprint', updatePrintSongHeader);
 
         function getCurrentSongRows() {
             return Array.from(document.querySelectorAll('input.input-field')).map(input => ({
@@ -2358,6 +2426,7 @@ E|----------------`;
                 name,
                 savedAt: new Date().toISOString(),
                 harpKey: keySelect ? keySelect.value : 'C',
+                selectedHarpKey: keySelect ? keySelect.value : 'C',
                 tempo: speedSelect ? speedSelect.value : '800',
                 finderInput: finderInput ? finderInput.value || '' : '',
                 finderPianoTokens: finderInput ? finderInput.dataset.pianoTokens || '' : '',
@@ -2374,6 +2443,7 @@ E|----------------`;
                 return `<option value="${song.id}">${safeName}</option>`;
             }).join('');
             if (selectedId) select.value = selectedId;
+            updatePrintSongHeader();
         }
 
         function saveCurrentSong() {
@@ -2408,6 +2478,7 @@ E|----------------`;
             }
 
             writeSavedSongs(songs);
+            currentSongTitle = trimmedName;
             updateSavedSongsSelect(songData.id);
             setSongSaveStatus(`„${trimmedName}“ gespeichert.`);
         }
@@ -2434,27 +2505,22 @@ E|----------------`;
             for (let i = 2; i <= count; i++) addRow();
         }
 
-        function loadSelectedSong() {
-            const select = document.getElementById('saved-song-select');
-            if (!select || !select.value) {
-                setSongSaveStatus('Bitte zuerst eine gespeicherte Melodie auswählen.');
-                return;
-            }
-            const song = getSavedSongs().find(item => item.id === select.value);
-            if (!song) {
-                setSongSaveStatus('Gespeicherte Melodie wurde nicht gefunden.');
-                updateSavedSongsSelect();
-                return;
+        function applySongData(song, statusPrefix = 'geladen') {
+            if (!song || typeof song !== 'object') {
+                setSongSaveStatus('Die JSON-Datei enthält keine gültige Melodie.');
+                return false;
             }
 
             const keySelect = document.getElementById('key-select');
             const speedSelect = document.getElementById('speed-select');
-            if (keySelect && song.harpKey) keySelect.value = song.harpKey;
+            const savedHarpKey = song.harpKey || song.selectedHarpKey || 'C';
+            if (keySelect && savedHarpKey) keySelect.value = savedHarpKey;
             if (speedSelect && song.tempo) speedSelect.value = song.tempo;
 
-            prepareRowsForSavedSong(Array.isArray(song.rows) ? song.rows.length : 1);
+            const rows = Array.isArray(song.rows) ? song.rows : [];
+            prepareRowsForSavedSong(rows.length || 1);
 
-            (song.rows || []).forEach((rowData, index) => {
+            rows.forEach((rowData, index) => {
                 const input = document.getElementById(`note-input-${index + 1}`);
                 restoreInputDataset(input, rowData || {});
             });
@@ -2470,11 +2536,113 @@ E|----------------`;
                 }
             }
 
+            currentSongTitle = String(song.name || '').trim() || 'Ohne Titel';
             rebuildAll();
             findBestHarp();
+
+            // Wichtig für JSON-Import: Der Finder kann anhand der Melodie automatisch
+            // eine andere Harp vorschlagen und dabei die Auswahl umstellen. Beim Laden
+            // einer gespeicherten Datei soll aber die tatsächlich gespeicherte/gewählte
+            // Harp-Tonart verbindlich wiederhergestellt werden.
+            if (keySelect && savedHarpKey) {
+                keySelect.value = savedHarpKey;
+                rebuildAll();
+            }
+
             initHarpInputMode();
             setHarpInputTarget('note-input-1');
-            setSongSaveStatus(`„${song.name}“ geladen.`);
+            updatePrintSongHeader();
+            setSongSaveStatus(`„${currentSongTitle}“ ${statusPrefix}.`);
+            return true;
+        }
+
+        function sanitizeFileName(name) {
+            return String(name || 'Harp-Melodie')
+                .trim()
+                .replace(/[\\/:*?"<>|]+/g, '-')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '') || 'Harp-Melodie';
+        }
+
+        function downloadJsonFile(filename, data) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportCurrentSongAsJson() {
+            const rows = getCurrentSongRows();
+            if (!hasSongContent(rows)) {
+                setSongSaveStatus('Keine Tabs für JSON-Export vorhanden.');
+                return;
+            }
+
+            const select = document.getElementById('saved-song-select');
+            const songs = getSavedSongs();
+            const selectedSong = select && select.value ? songs.find(song => song.id === select.value) : null;
+            const defaultName = selectedSong ? selectedSong.name : (currentSongTitle || '');
+            const name = prompt('Name für die JSON-Datei:', defaultName || 'Harp-Melodie');
+            if (!name || !name.trim()) {
+                setSongSaveStatus('JSON-Export abgebrochen.');
+                return;
+            }
+
+            const songData = getCurrentSongData(name.trim());
+            songData.exportedAt = new Date().toISOString();
+            songData.format = 'harp-studio-song-json';
+            songData.formatVersion = 1;
+            currentSongTitle = songData.name;
+            updatePrintSongHeader();
+            downloadJsonFile(`${sanitizeFileName(songData.name)}.json`, songData);
+            setSongSaveStatus(`„${songData.name}“ als JSON gespeichert.`);
+        }
+
+        function importSongFromJsonFile(fileInput) {
+            const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const song = JSON.parse(String(reader.result || '{}'));
+                    const ok = applySongData(song, 'aus JSON geladen');
+                    if (ok) {
+                        const select = document.getElementById('saved-song-select');
+                        if (select) select.value = '';
+                    }
+                } catch (e) {
+                    setSongSaveStatus('JSON-Datei konnte nicht gelesen werden.');
+                } finally {
+                    fileInput.value = '';
+                }
+            };
+            reader.onerror = () => {
+                setSongSaveStatus('JSON-Datei konnte nicht geladen werden.');
+                fileInput.value = '';
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        function loadSelectedSong() {
+            const select = document.getElementById('saved-song-select');
+            if (!select || !select.value) {
+                setSongSaveStatus('Bitte zuerst eine gespeicherte Melodie auswählen.');
+                return;
+            }
+            const song = getSavedSongs().find(item => item.id === select.value);
+            if (!song) {
+                setSongSaveStatus('Gespeicherte Melodie wurde nicht gefunden.');
+                updateSavedSongsSelect();
+                return;
+            }
+
+            applySongData(song, 'geladen');
         }
 
         function deleteSelectedSong() {
@@ -2495,6 +2663,7 @@ E|----------------`;
                 return;
             }
             writeSavedSongs(songs.filter(item => item.id !== song.id));
+            updatePrintSongHeader();
             setSongSaveStatus(`„${song.name}“ gelöscht.`);
         }
 
@@ -2503,6 +2672,7 @@ E|----------------`;
             const data = getHarpData(root);
             const container = document.getElementById('harp-visual');
             document.getElementById('current-key-display').innerText = `${root}-HARP`;
+            updatePrintSongHeader();
             const harpVisualKeyLabel = document.getElementById('harp-visual-key-label');
             if (harpVisualKeyLabel) harpVisualKeyLabel.innerText = `${root}-HARP`;
             
@@ -2632,11 +2802,12 @@ E|----------------</textarea>
                     const directionLabel = direction === 'higher' ? '+' : direction === 'lower' ? '-' : '';
 
                     const arrowClass = best.t === 'b' ? 'blow' : best.t === 'd' ? 'draw' : 'bend';
+                    const arrowColor = best.t === 'b' ? '#2563eb' : best.t === 'd' ? '#dc2626' : '#d97706';
 
                     node.innerHTML = `
                         <span class="note-name">${best.n}${directionLabel}</span>
                         <span class="channel">${best.h}</span>
-                        <span class="arrow ${arrowClass}">${symbol}</span>
+                        <span class="arrow ${arrowClass}" style="color:${arrowColor}; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact;">${symbol}</span>
                     `;
                     container.appendChild(node);
                 }
