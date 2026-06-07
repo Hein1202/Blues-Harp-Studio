@@ -243,6 +243,125 @@
             letter-spacing: 0.08em;
         }
 
+        .harp-input-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 12px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 5px;
+        }
+        .harp-input-btn {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 7px 11px;
+            font-size: 0.68rem;
+            font-weight: 900;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            transition: all 0.15s ease;
+        }
+        .harp-input-btn:hover { border-color: #16a34a; color: #166534; background: #f0fdf4; }
+        .harp-input-btn.active { background: #dcfce7; border-color: #22c55e; color: #166534; }
+        .harp-input-status {
+            min-width: 92px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.68rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .harp-input-target {
+            color: #475569;
+            font-size: 0.68rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .line-row.harp-input-target-row {
+            border-left-color: #22c55e;
+            border-color: #bbf7d0;
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.12);
+        }
+        .harp-input-mode .harp-note-marker {
+            cursor: pointer;
+            outline: 2px dashed rgba(22, 163, 74, 0.35);
+            outline-offset: 2px;
+        }
+        .harp-input-mode .harp-note-marker:hover {
+            background: #dcfce7;
+            color: #166534;
+            outline-color: #16a34a;
+        }
+        .harp-input-workbench {
+            background: #f0fdf4;
+            border: 3px solid #bbf7d0;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin: -1rem 0 1.6rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .harp-input-workbench-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .harp-input-workbench-title {
+            color: #166534;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+        .harp-input-workbench-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .harp-input-target-select {
+            background: #ffffff;
+            border: 2px solid #86efac;
+            border-radius: 10px;
+            padding: 8px 12px;
+            color: #14532d;
+            font-size: 0.72rem;
+            font-weight: 900;
+            outline: none;
+        }
+        .harp-input-live-tabs {
+            min-height: 62px;
+            background: #ffffff;
+            border: 2px solid #dcfce7;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .harp-input-live-tabs .tab-node {
+            min-width: 42px;
+            margin: 0 4px;
+            transform: scale(0.82);
+            transform-origin: center;
+        }
+        .harp-input-live-empty {
+            color: #86a08d;
+            font-size: 0.75rem;
+            font-weight: 800;
+            font-style: italic;
+        }
+
         /* Harp Finder Styles */
         .finder-card {
             background: #fdf2f8;
@@ -607,7 +726,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 209 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 215 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -658,9 +777,30 @@ E|----------------</textarea>
             <span id="harp-position-label" class="harp-position-value">Standard</span>
             <button type="button" class="harp-position-btn" onclick="changeHarpPositionShift(1)">Höher ▶</button>
         </div>
+        <div class="harp-input-controls" aria-label="Harp-Ansicht als Eingabe nutzen">
+            <button type="button" id="harp-input-toggle" class="harp-input-btn" onclick="toggleHarpInputMode()">Harp-Eingabe starten</button>
+            <button type="button" class="harp-input-btn" onclick="deleteLastHarpInputNote()">Letzten Tab löschen</button>
+            <span id="harp-input-status" class="harp-input-status">Aus</span>
+            <span id="harp-input-target" class="harp-input-target">Ziel: Zeile 1</span>
+        </div>
     </div>
 
     <div id="harp-visual" class="harp-map no-print"></div>
+
+    <div id="harp-input-workbench" class="harp-input-workbench no-print">
+        <div class="harp-input-workbench-head">
+            <span class="harp-input-workbench-title">Aktuelle Harp-Tabs</span>
+            <div class="harp-input-workbench-actions">
+                <select id="harp-input-target-select" class="harp-input-target-select" onchange="setHarpInputTarget(this.value)">
+                    <option value="note-input-1">Zeile 1</option>
+                </select>
+                <button type="button" class="harp-input-btn" onclick="addRowFromHarpInput()">Neue Zeile beginnen</button>
+            </div>
+        </div>
+        <div id="harp-input-live-tabs" class="harp-input-live-tabs">
+            <span class="harp-input-live-empty">Noch keine Harp-Tabs in der Zielzeile.</span>
+        </div>
+    </div>
 
     <div class="controls-bar no-print">
         <div class="flex items-center gap-6">
@@ -797,6 +937,8 @@ E|----------------</textarea>
         let isSoundReady = false;
         let isLowOctave = false;
         let harpPositionShift = 0;
+        let harpInputMode = false;
+        let activeHarpInputTargetId = 'note-input-1';
 
         const baseFreqs = {
             "C": 261.63, "C#": 277.18, "Db": 277.18, "D": 293.66, "D#": 311.13, "Eb": 311.13,
@@ -824,7 +966,7 @@ E|----------------</textarea>
         const pianoNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "Bb", "H"];
         const pianoOctaves = [
             { label: 'tiefe Lage', suffix: '-', octave: 0, helper: 'bevorzugt Harp-Kanäle 1-3', minHole: 1, maxHole: 3, preferredHole: 2 },
-            { label: 'normale Lage', suffix: '', octave: 1, helper: 'bevorzugt Harp-Kanäle 4-7 · Schwerpunkt Kanal 6', minHole: 4, maxHole: 7, preferredHole: 6, isNormal: true },
+            { label: 'normale Lage', suffix: '', octave: 1, helper: 'bevorzugt Harp-Kanäle 4-8 · Schwerpunkt Kanal 6', minHole: 4, maxHole: 8, preferredHole: 6, isNormal: true },
             { label: 'hohe Lage', suffix: '+', octave: 2, helper: 'bevorzugt Harp-Kanäle 7-10', minHole: 7, maxHole: 10, preferredHole: 8 }
         ];
 
@@ -917,11 +1059,13 @@ E|----------------</textarea>
             return `${token.note}${token.suffix || ''}`;
         }
 
-        function rebuildInputFromPianoTokens(input, tokens) {
+        function rebuildInputFromPianoTokens(input, tokens, shouldFocus = true) {
             input.value = tokens.map(tokenTextFromPianoToken).join(' ').replace(/\s+$/g, '');
             const cursor = input.value.length;
-            input.focus();
-            input.setSelectionRange(cursor, cursor);
+            if (shouldFocus) {
+                input.focus({ preventScroll: true });
+                input.setSelectionRange(cursor, cursor);
+            }
             storePianoTokens(input, tokens);
             triggerInputUpdate(input);
         }
@@ -929,7 +1073,7 @@ E|----------------</textarea>
         function getPianoLaneDefaults(direction = 'auto') {
             if (direction === 'lower') return { minHole: 1, maxHole: 3, preferredHole: 2, octave: 0 };
             if (direction === 'higher') return { minHole: 7, maxHole: 10, preferredHole: 8, octave: 2 };
-            return { minHole: 4, maxHole: 7, preferredHole: 6, octave: 1 };
+            return { minHole: 4, maxHole: 8, preferredHole: 6, octave: 1 };
         }
 
         function getNoteRequestsForInput(input) {
@@ -941,8 +1085,11 @@ E|----------------</textarea>
                         note: t.note,
                         direction: t.direction || 'auto',
                         targetFreq: typeof t.targetFreq === 'number' ? t.targetFreq : null,
-                        fromPiano: true,
+                        fromPiano: !t.fromHarp,
                         fromGuitar: !!t.fromGuitar,
+                        fromHarp: !!t.fromHarp,
+                        harpMode: t.harpMode || null,
+                        bendLevel: typeof t.bendLevel === 'number' ? t.bendLevel : null,
                         minHole: typeof t.minHole === 'number' ? t.minHole : null,
                         preferredHole: typeof t.preferredHole === 'number' ? t.preferredHole : null,
                         maxHole: typeof t.maxHole === 'number' ? t.maxHole : null
@@ -1315,11 +1462,14 @@ E|----------------`;
                 const distPreferred = Math.abs(a.h - preferredHole) - Math.abs(b.h - preferredHole);
                 if (Math.abs(distPreferred) > 0.001) return distPreferred;
 
-                const quality = scoreMatch(b) - scoreMatch(a);
-                if (quality !== 0) return quality;
-
+                // Bei gleich guter Lage entscheidet der melodische Verlauf.
+                // Beispiel C-Harp: Nach 7↑ soll D eher als 8↓ erscheinen,
+                // nicht als 4↓, weil 8↓ näher an der bisherigen Spielposition liegt.
                 const distLast = Math.abs(a.h - lastHole) - Math.abs(b.h - lastHole);
                 if (Math.abs(distLast) > 0.001) return distLast;
+
+                const quality = scoreMatch(b) - scoreMatch(a);
+                if (quality !== 0) return quality;
 
                 if (targetFreq !== null) {
                     const freqDiff = Math.abs(a.f - targetFreq) - Math.abs(b.f - targetFreq);
@@ -1376,12 +1526,22 @@ E|----------------`;
             const direction = request.direction || 'auto';
             const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
             const referenceFreq = direction === 'auto' ? null : (lastFreqByNote[note] ?? autoBest.f);
-            const baseMatch = request.fromGuitar
-                ? chooseBestMatchForGuitar(matches, request, lastHole)
-                : (request.fromPiano
-                    ? chooseBestMatchForPiano(matches, request, lastHole, previousMatch)
-                    : (direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq)));
-            return applyHarpPositionShift(matches, baseMatch, harpPositionShift);
+            let baseMatch;
+            if (request.fromHarp) {
+                baseMatch = matches.find(m => {
+                    const sameHole = typeof request.minHole === 'number' ? m.h === request.minHole : true;
+                    const sameMode = request.harpMode ? m.t === request.harpMode : true;
+                    const sameBend = m.t === 'bend' && typeof request.bendLevel === 'number' ? (m.level || 1) === request.bendLevel : true;
+                    return sameHole && sameMode && sameBend;
+                }) || matches.find(m => typeof request.minHole === 'number' && m.h === request.minHole) || autoBest;
+            } else {
+                baseMatch = request.fromGuitar
+                    ? chooseBestMatchForGuitar(matches, request, lastHole)
+                    : (request.fromPiano
+                        ? chooseBestMatchForPiano(matches, request, lastHole, previousMatch)
+                        : (direction === 'auto' ? autoBest : chooseBestMatch(matches, lastHole, direction, referenceFreq)));
+            }
+            return request.fromHarp ? baseMatch : applyHarpPositionShift(matches, baseMatch, harpPositionShift);
         }
 
         function updateHarpPositionLabel() {
@@ -1396,6 +1556,167 @@ E|----------------`;
             harpPositionShift = Math.max(-3, Math.min(3, harpPositionShift + delta));
             updateHarpPositionLabel();
             rebuildAll();
+        }
+
+        function updateHarpInputModeUI() {
+            refreshHarpInputTargetSelect();
+            const container = document.getElementById('harp-visual');
+            const btn = document.getElementById('harp-input-toggle');
+            const status = document.getElementById('harp-input-status');
+            const target = document.getElementById('harp-input-target');
+
+            if (container) container.classList.toggle('harp-input-mode', harpInputMode);
+            if (btn) {
+                btn.classList.toggle('active', harpInputMode);
+                btn.textContent = harpInputMode ? 'Harp-Eingabe beenden' : 'Harp-Eingabe starten';
+            }
+            if (status) status.textContent = harpInputMode ? 'Aktiv' : 'Aus';
+
+            const input = document.getElementById(activeHarpInputTargetId) || document.getElementById('note-input-1');
+            if (target && input) {
+                const row = input.closest('.line-row');
+                const rowNumber = row ? row.id.replace('row-', '') : '1';
+                target.textContent = `Ziel: Zeile ${rowNumber}`;
+            }
+
+            document.querySelectorAll('.line-row').forEach(row => row.classList.remove('harp-input-target-row'));
+            if (input && input.closest('.line-row')) input.closest('.line-row').classList.add('harp-input-target-row');
+            syncHarpInputLiveTabs();
+        }
+
+        function toggleHarpInputMode(force = null) {
+            harpInputMode = typeof force === 'boolean' ? force : !harpInputMode;
+            updateHarpInputModeUI();
+        }
+
+        function refreshHarpInputTargetSelect() {
+            const select = document.getElementById('harp-input-target-select');
+            if (!select) return;
+            const currentValue = activeHarpInputTargetId;
+            select.innerHTML = '';
+            document.querySelectorAll('.line-row').forEach((row, index) => {
+                const input = row.querySelector('.input-field');
+                if (!input) return;
+                const rowNumber = row.id ? row.id.replace('row-', '') : String(index + 1);
+                const option = document.createElement('option');
+                option.value = input.id;
+                option.textContent = `Zeile ${rowNumber}`;
+                select.appendChild(option);
+            });
+            if (document.getElementById(currentValue)) select.value = currentValue;
+            else if (select.options.length) {
+                activeHarpInputTargetId = select.options[0].value;
+                select.value = activeHarpInputTargetId;
+            }
+        }
+
+        function syncHarpInputLiveTabs() {
+            const liveTabs = document.getElementById('harp-input-live-tabs');
+            if (!liveTabs) return;
+            const input = document.getElementById(activeHarpInputTargetId) || document.getElementById('note-input-1');
+            const row = input ? input.closest('.line-row') : null;
+            const display = row ? row.querySelector('.display') : null;
+            if (display && display.innerHTML.trim()) {
+                liveTabs.innerHTML = display.innerHTML;
+            } else {
+                liveTabs.innerHTML = '<span class="harp-input-live-empty">Noch keine Harp-Tabs in der Zielzeile.</span>';
+            }
+        }
+
+        function setHarpInputTarget(inputOrId) {
+            const input = typeof inputOrId === 'string' ? document.getElementById(inputOrId) : inputOrId;
+            if (!input || !input.classList || !input.classList.contains('input-field')) return;
+            activeHarpInputTargetId = input.id;
+            const select = document.getElementById('harp-input-target-select');
+            if (select) select.value = input.id;
+            updateHarpInputModeUI();
+        }
+
+        function createTokensFromCurrentInput(input) {
+            const existingTokens = getPianoTokens(input);
+            if (existingTokens) return existingTokens;
+
+            return extractNoteRequests(input.value).map(request => {
+                const lane = getPianoLaneDefaults(request.direction || 'auto');
+                return {
+                    type: 'note',
+                    note: request.note,
+                    suffix: request.direction === 'higher' ? '+' : request.direction === 'lower' ? '-' : '',
+                    direction: request.direction || 'auto',
+                    octave: lane.octave,
+                    targetFreq: getPianoTargetFreq(request.note, lane.octave),
+                    minHole: lane.minHole,
+                    maxHole: lane.maxHole,
+                    preferredHole: lane.preferredHole,
+                    fromHarp: false
+                };
+            });
+        }
+
+        function addHarpMarkerToActiveRow(marker) {
+            if (!marker) return;
+            const input = document.getElementById(activeHarpInputTargetId) || document.getElementById('note-input-1');
+            if (!input) return;
+
+            const note = marker.dataset.note;
+            const hole = parseInt(marker.dataset.hole || '', 10);
+            const freq = parseFloat(marker.dataset.freq || '');
+            if (!note || Number.isNaN(hole)) return;
+
+            const tokens = createTokensFromCurrentInput(input);
+            tokens.push({
+                type: 'note',
+                note,
+                suffix: '',
+                direction: 'auto',
+                octave: 1,
+                targetFreq: Number.isNaN(freq) ? getPianoTargetFreq(note, 1) : freq,
+                minHole: hole,
+                maxHole: hole,
+                preferredHole: hole,
+                fromHarp: true,
+                harpMode: marker.dataset.mode || '',
+                bendLevel: marker.dataset.level ? parseInt(marker.dataset.level, 10) : null
+            });
+
+            input.dataset.inputSource = 'harp';
+            rebuildInputFromPianoTokens(input, tokens, false);
+            const row = input.closest('.line-row');
+            if (row) updateView(input, parseInt(row.id.replace('row-', ''), 10));
+            updateHarpInputModeUI();
+        }
+
+        function handleHarpVisualClick(event) {
+            if (!harpInputMode) return;
+            const marker = event.target.closest('.harp-note-marker');
+            if (!marker || !document.getElementById('harp-visual').contains(marker)) return;
+            event.preventDefault();
+            addHarpMarkerToActiveRow(marker);
+        }
+
+        function deleteLastHarpInputNote() {
+            const input = document.getElementById(activeHarpInputTargetId) || document.getElementById('note-input-1');
+            if (!input) return;
+            deleteLastPianoToken(input.id);
+            const row = input.closest('.line-row');
+            if (row) updateView(input, parseInt(row.id.replace('row-', ''), 10));
+            updateHarpInputModeUI();
+        }
+
+        function initHarpInputMode() {
+            const container = document.getElementById('harp-visual');
+            if (container && !container.dataset.harpInputBound) {
+                container.addEventListener('click', handleHarpVisualClick);
+                container.dataset.harpInputBound = '1';
+            }
+            document.querySelectorAll('.input-field').forEach(input => {
+                if (!input.dataset.harpTargetBound) {
+                    input.addEventListener('focus', () => setHarpInputTarget(input));
+                    input.addEventListener('click', () => setHarpInputTarget(input));
+                    input.dataset.harpTargetBound = '1';
+                }
+            });
+            updateHarpInputModeUI();
         }
 
         function extractNoteRequests(text) {
@@ -1719,6 +2040,15 @@ E|----------------`;
                     </div>
                 `;
             }).join('');
+            updateHarpInputModeUI();
+        }
+
+        function addRowFromHarpInput() {
+            const currentScrollX = window.scrollX || window.pageXOffset || 0;
+            const currentScrollY = window.scrollY || window.pageYOffset || 0;
+            addRow();
+            window.scrollTo(currentScrollX, currentScrollY);
+            requestAnimationFrame(() => window.scrollTo(currentScrollX, currentScrollY));
         }
 
         let lineIdx = 1;
@@ -1762,12 +2092,15 @@ E|----------------</textarea>
                 </div>
                 <div class="display flex flex-wrap items-center mt-4 min-h-[90px]"></div>`;
             document.getElementById('editor').appendChild(div);
+            initHarpInputMode();
+            setHarpInputTarget(`note-input-${lineIdx}`);
         }
 
         function rebuildAll() {
             drawHarpMap();
             markFinderNotesOnHarp();
             document.querySelectorAll('.input-field').forEach((input, i) => updateView(input, i + 1));
+            updateHarpInputModeUI();
         }
 
         function updateView(input, id) {
@@ -1831,14 +2164,18 @@ E|----------------</textarea>
                             note: token.note,
                             direction: token.direction || 'auto',
                             targetFreq: typeof token.targetFreq === 'number' ? token.targetFreq : null,
-                            fromPiano: true,
+                            fromPiano: !token.fromHarp,
                             fromGuitar: !!token.fromGuitar,
+                            fromHarp: !!token.fromHarp,
+                            harpMode: token.harpMode || null,
+                            bendLevel: typeof token.bendLevel === 'number' ? token.bendLevel : null,
                             minHole: typeof token.minHole === 'number' ? token.minHole : null,
                             preferredHole: typeof token.preferredHole === 'number' ? token.preferredHole : null,
                             maxHole: typeof token.maxHole === 'number' ? token.maxHole : null
                         });
                     }
                 });
+                syncHarpInputLiveTabs();
                 return;
             }
 
@@ -1853,6 +2190,7 @@ E|----------------</textarea>
                 renderRequest({ note: found.note, direction: found.direction || 'auto' });
                 i = found.end;
             }
+            syncHarpInputLiveTabs();
         }
 
         async function playNote(freq, duration) {
@@ -1914,7 +2252,7 @@ E|----------------</textarea>
             window.isGlobalPlaying = false;
         }
 
-        window.onload = () => { drawHarpMap(); updateHarpPositionLabel(); markFinderNotesOnHarp(); updateAudioButton(); };
+        window.onload = () => { drawHarpMap(); initHarpInputMode(); updateHarpPositionLabel(); markFinderNotesOnHarp(); updateAudioButton(); };
     </script>
 </body>
 </html>
