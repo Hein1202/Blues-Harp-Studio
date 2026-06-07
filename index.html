@@ -637,6 +637,61 @@
             transition: all 0.15s ease;
         }
         .input-clear-btn:hover { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+
+        .song-save-panel {
+            background: #f8fafc;
+            border: 3px solid #e2e8f0;
+            border-radius: 14px;
+            margin: -0.8rem 0 2rem;
+            padding: 18px;
+        }
+        .song-save-title {
+            color: #334155;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            margin-bottom: 12px;
+        }
+        .song-save-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+        .song-save-select {
+            min-width: 260px;
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #1e293b;
+            font-size: 0.78rem;
+            font-weight: 900;
+            outline: none;
+        }
+        .song-save-btn {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            color: #334155;
+            transition: all 0.15s ease;
+        }
+        .song-save-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
+        .song-save-btn.primary { background: #dcfce7; border-color: #86efac; color: #166534; }
+        .song-save-btn.primary:hover { background: #bbf7d0; border-color: #22c55e; }
+        .song-save-btn.danger:hover { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+        .song-save-status {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #64748b;
+        }
+
         .global-actions {
             display: flex;
             flex-wrap: wrap;
@@ -726,7 +781,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 218 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 222 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -886,6 +941,20 @@ E|----------------</textarea>
         </div>
     </div>
 
+
+    <div class="song-save-panel no-print">
+        <div class="song-save-title">Melodien speichern</div>
+        <div class="song-save-actions">
+            <button type="button" class="song-save-btn primary" onclick="saveCurrentSong()">Melodie speichern</button>
+            <select id="saved-song-select" class="song-save-select">
+                <option value="">Keine gespeicherte Melodie</option>
+            </select>
+            <button type="button" class="song-save-btn" onclick="loadSelectedSong()">Laden</button>
+            <button type="button" class="song-save-btn danger" onclick="deleteSelectedSong()">Löschen</button>
+            <span id="song-save-status" class="song-save-status"></span>
+        </div>
+    </div>
+
     <div id="editor">
         <div class="line-row" id="row-1">
             <div class="play-row-btn no-print absolute left-[-55px] top-6 cursor-pointer text-slate-300 hover:text-blue-600 transition-colors" onclick="playRow(1)">
@@ -966,7 +1035,7 @@ E|----------------</textarea>
         const pianoNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "Bb", "H"];
         const pianoOctaves = [
             { label: 'tiefe Lage', suffix: '-', octave: 0, helper: 'bevorzugt Harp-Kanäle 1-3', minHole: 1, maxHole: 3, preferredHole: 2 },
-            { label: 'normale Lage', suffix: '', octave: 1, helper: 'bevorzugt Harp-Kanäle 4-8 · Schwerpunkt Kanal 6', minHole: 4, maxHole: 8, preferredHole: 6, isNormal: true },
+            { label: 'normale Lage', suffix: '', octave: 1, helper: 'bevorzugt Harp-Kanäle 4-8 · Schwerpunkt Kanal 7', minHole: 4, maxHole: 8, preferredHole: 7, isNormal: true },
             { label: 'hohe Lage', suffix: '+', octave: 2, helper: 'bevorzugt Harp-Kanäle 7-10', minHole: 7, maxHole: 10, preferredHole: 8 }
         ];
 
@@ -1073,7 +1142,7 @@ E|----------------</textarea>
         function getPianoLaneDefaults(direction = 'auto') {
             if (direction === 'lower') return { minHole: 1, maxHole: 3, preferredHole: 2, octave: 0 };
             if (direction === 'higher') return { minHole: 7, maxHole: 10, preferredHole: 8, octave: 2 };
-            return { minHole: 4, maxHole: 8, preferredHole: 6, octave: 1 };
+            return { minHole: 4, maxHole: 8, preferredHole: 7, octave: 1 };
         }
 
         function getNoteRequestsForInput(input) {
@@ -1101,7 +1170,7 @@ E|----------------</textarea>
 
             // Wichtig: Eine normale Buchstaben-Eingabe im Harp-Finder soll musikalisch
             // wie die Gitarren-Tabulatur behandelt werden: Ohne + oder - wird die
-            // mittlere Harp-Lage bevorzugt. Dadurch ergeben dieselben Töne im Finder
+            // obere mittlere Harp-Lage bevorzugt. Dadurch ergeben dieselben Töne im Finder
             // dieselbe Harp-Auswahl und Harp-Anzeige wie beim Gitarren-Tab-Import.
             if (input.dataset.inputSource === 'piano' || useMiddleLaneForFinderText) {
                 return requests.map(request => {
@@ -1520,6 +1589,73 @@ E|----------------`;
             return sorted[targetIndex] || baseMatch;
         }
 
+        function getTextInputCandidatePenalty(match, request, index) {
+            if (!match) return 999;
+            const targetHole = index === 0 ? 5 : 7;
+            const laneWeight = index === 0 ? 10 : 3;
+            let penalty = Math.abs(match.h - targetHole) * laneWeight;
+
+            // Normale Buchstabeneingabe soll in der gut spielbaren Mittel-Lage starten,
+            // aber danach dem Melodieverlauf folgen. Bends bleiben möglich, werden aber
+            // deutlich schwächer bewertet als direkt spielbare Töne.
+            if (match.h < 4 || match.h > 8) penalty += 12;
+            if (match.t === 'bend') penalty += (match.level || 1) * 30;
+            else penalty -= 3;
+
+            if (request.direction === 'higher') penalty -= Math.max(0, match.h - 6) * 2;
+            if (request.direction === 'lower') penalty -= Math.max(0, 5 - match.h) * 2;
+            return penalty;
+        }
+
+        function getTextInputTransitionPenalty(previousMatch, match) {
+            if (!previousMatch || !match) return 0;
+            const holeJump = Math.abs(match.h - previousMatch.h);
+            let penalty = holeJump * 8;
+            if (holeJump > 2) penalty += (holeJump - 2) * 20;
+
+            if (previousMatch.f && match.f) {
+                const semitoneJump = Math.abs(12 * Math.log2(match.f / previousMatch.f));
+                if (Number.isFinite(semitoneJump)) penalty += semitoneJump * 0.4;
+            }
+            return penalty;
+        }
+
+        function chooseTextInputMelodyPath(currentHarp, requests) {
+            if (!requests.length) return [];
+            let states = [];
+
+            requests.forEach((request, index) => {
+                const matches = getMatchesForNote(currentHarp, request.note);
+                if (!matches.length) {
+                    states = [];
+                    return;
+                }
+
+                const nextStates = [];
+                matches.forEach(match => {
+                    const candidatePenalty = getTextInputCandidatePenalty(match, request, index);
+                    if (index === 0 || !states.length) {
+                        nextStates.push({ match, path: [match], score: candidatePenalty });
+                    } else {
+                        states.forEach(state => {
+                            const transitionPenalty = getTextInputTransitionPenalty(state.match, match);
+                            nextStates.push({
+                                match,
+                                path: [...state.path, match],
+                                score: state.score + candidatePenalty + transitionPenalty
+                            });
+                        });
+                    }
+                });
+
+                states = nextStates
+                    .sort((a, b) => a.score - b.score)
+                    .slice(0, 80);
+            });
+
+            return states.length ? states[0].path : [];
+        }
+
         function chooseDisplayMatch(matches, request, lastHole, lastFreqByNote, previousMatch = null) {
             if (!matches.length) return null;
             const note = request.note;
@@ -1763,11 +1899,12 @@ E|----------------`;
 
             // Für Piano- und Gitarren-Tab-Eingaben soll die Lageninformation bei der
             // Harp-Auswahl stärker wirken. Die normale/mittlere Lage orientiert sich
-            // dabei musikalisch an Kanal 6, damit Piano und Gitarren-Tab bei gleicher
-            // Melodie möglichst dieselbe Harp-Ansicht ergeben.
+            // dabei musikalisch am oberen Mittelbereich um Kanal 7. So werden
+            // doppelt vorhandene Töne wie E auf der C-Harp eher als höheres E
+            // gewählt, wenn die Melodie in dieser Lage liegt.
             if (typeof request.minHole === 'number' && request.minHole >= 7) targetHole = 8;
             else if (typeof request.maxHole === 'number' && request.maxHole <= 3) targetHole = 2;
-            else if (typeof request.minHole === 'number' && request.minHole >= 4) targetHole = 6;
+            else if (typeof request.minHole === 'number' && request.minHole >= 4) targetHole = 7;
 
             if (targetHole === null) return 0;
 
@@ -1824,7 +1961,7 @@ E|----------------`;
             let targetHole = typeof request.preferredHole === 'number' ? request.preferredHole : null;
             if (typeof request.minHole === 'number' && request.minHole >= 7) targetHole = 8;
             else if (typeof request.maxHole === 'number' && request.maxHole <= 3) targetHole = 2;
-            else if (typeof request.minHole === 'number' && request.minHole >= 4) targetHole = 6;
+            else if (typeof request.minHole === 'number' && request.minHole >= 4) targetHole = 7;
 
             if (targetHole !== null) penalty += Math.abs(match.h - targetHole) * 2;
             if (typeof request.minHole === 'number' && match.h < request.minHole) penalty += 10 + ((request.minHole - match.h) * 3);
@@ -2173,6 +2310,194 @@ E|----------------`;
             rebuildAll();
         }
 
+
+        const savedSongsStorageKey = 'harpStudioSavedSongsV1';
+
+        function getSavedSongs() {
+            try {
+                const stored = JSON.parse(localStorage.getItem(savedSongsStorageKey) || '[]');
+                return Array.isArray(stored) ? stored : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function writeSavedSongs(songs) {
+            localStorage.setItem(savedSongsStorageKey, JSON.stringify(songs));
+            updateSavedSongsSelect();
+        }
+
+        function setSongSaveStatus(message) {
+            const status = document.getElementById('song-save-status');
+            if (status) status.textContent = message || '';
+        }
+
+        function getCurrentSongRows() {
+            return Array.from(document.querySelectorAll('input.input-field')).map(input => ({
+                value: input.value || '',
+                pianoTokens: input.dataset.pianoTokens || '',
+                pianoText: input.dataset.pianoText || '',
+                inputSource: input.dataset.inputSource || '',
+                pianoFallbackMinHole: input.dataset.pianoFallbackMinHole || '',
+                pianoFallbackMaxHole: input.dataset.pianoFallbackMaxHole || '',
+                pianoFallbackPreferredHole: input.dataset.pianoFallbackPreferredHole || '',
+                pianoFallbackOctave: input.dataset.pianoFallbackOctave || ''
+            }));
+        }
+
+        function hasSongContent(rows) {
+            return rows.some(row => String(row.value || '').trim() !== '');
+        }
+
+        function getCurrentSongData(name) {
+            const finderInput = document.getElementById('finder-input');
+            const keySelect = document.getElementById('key-select');
+            const speedSelect = document.getElementById('speed-select');
+            return {
+                id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                name,
+                savedAt: new Date().toISOString(),
+                harpKey: keySelect ? keySelect.value : 'C',
+                tempo: speedSelect ? speedSelect.value : '800',
+                finderInput: finderInput ? finderInput.value || '' : '',
+                finderPianoTokens: finderInput ? finderInput.dataset.pianoTokens || '' : '',
+                rows: getCurrentSongRows()
+            };
+        }
+
+        function updateSavedSongsSelect(selectedId = '') {
+            const select = document.getElementById('saved-song-select');
+            if (!select) return;
+            const songs = getSavedSongs().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'de'));
+            select.innerHTML = '<option value="">Gespeicherte Melodie auswählen</option>' + songs.map(song => {
+                const safeName = String(song.name || 'Ohne Namen').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                return `<option value="${song.id}">${safeName}</option>`;
+            }).join('');
+            if (selectedId) select.value = selectedId;
+        }
+
+        function saveCurrentSong() {
+            const rows = getCurrentSongRows();
+            if (!hasSongContent(rows)) {
+                setSongSaveStatus('Keine Tabs zum Speichern vorhanden.');
+                return;
+            }
+
+            const songs = getSavedSongs();
+            const selected = document.getElementById('saved-song-select');
+            const selectedSong = selected && selected.value ? songs.find(song => song.id === selected.value) : null;
+            const defaultName = selectedSong ? selectedSong.name : '';
+            const name = prompt('Name der Melodie:', defaultName || '');
+            if (!name || !name.trim()) {
+                setSongSaveStatus('Speichern abgebrochen.');
+                return;
+            }
+
+            const trimmedName = name.trim();
+            const existingIndex = songs.findIndex(song => song.name.toLowerCase() === trimmedName.toLowerCase());
+            const songData = getCurrentSongData(trimmedName);
+            if (existingIndex >= 0) {
+                if (!confirm(`„${trimmedName}“ ist bereits gespeichert. Überschreiben?`)) {
+                    setSongSaveStatus('Speichern abgebrochen.');
+                    return;
+                }
+                songData.id = songs[existingIndex].id;
+                songs[existingIndex] = songData;
+            } else {
+                songs.push(songData);
+            }
+
+            writeSavedSongs(songs);
+            updateSavedSongsSelect(songData.id);
+            setSongSaveStatus(`„${trimmedName}“ gespeichert.`);
+        }
+
+        function restoreInputDataset(input, rowData) {
+            if (!input) return;
+            input.value = rowData.value || '';
+            clearPianoTokens(input);
+            if (rowData.pianoTokens) input.dataset.pianoTokens = rowData.pianoTokens;
+            if (rowData.pianoText) input.dataset.pianoText = rowData.pianoText;
+            if (rowData.inputSource) input.dataset.inputSource = rowData.inputSource;
+            if (rowData.pianoFallbackMinHole) input.dataset.pianoFallbackMinHole = rowData.pianoFallbackMinHole;
+            if (rowData.pianoFallbackMaxHole) input.dataset.pianoFallbackMaxHole = rowData.pianoFallbackMaxHole;
+            if (rowData.pianoFallbackPreferredHole) input.dataset.pianoFallbackPreferredHole = rowData.pianoFallbackPreferredHole;
+            if (rowData.pianoFallbackOctave) input.dataset.pianoFallbackOctave = rowData.pianoFallbackOctave;
+        }
+
+        function prepareRowsForSavedSong(rowCount) {
+            document.querySelectorAll('.line-row').forEach(row => {
+                if (row.id !== 'row-1') row.remove();
+            });
+            lineIdx = 1;
+            const count = Math.max(1, rowCount || 1);
+            for (let i = 2; i <= count; i++) addRow();
+        }
+
+        function loadSelectedSong() {
+            const select = document.getElementById('saved-song-select');
+            if (!select || !select.value) {
+                setSongSaveStatus('Bitte zuerst eine gespeicherte Melodie auswählen.');
+                return;
+            }
+            const song = getSavedSongs().find(item => item.id === select.value);
+            if (!song) {
+                setSongSaveStatus('Gespeicherte Melodie wurde nicht gefunden.');
+                updateSavedSongsSelect();
+                return;
+            }
+
+            const keySelect = document.getElementById('key-select');
+            const speedSelect = document.getElementById('speed-select');
+            if (keySelect && song.harpKey) keySelect.value = song.harpKey;
+            if (speedSelect && song.tempo) speedSelect.value = song.tempo;
+
+            prepareRowsForSavedSong(Array.isArray(song.rows) ? song.rows.length : 1);
+
+            (song.rows || []).forEach((rowData, index) => {
+                const input = document.getElementById(`note-input-${index + 1}`);
+                restoreInputDataset(input, rowData || {});
+            });
+
+            const finderInput = document.getElementById('finder-input');
+            if (finderInput) {
+                finderInput.value = song.finderInput || '';
+                clearPianoTokens(finderInput);
+                if (song.finderPianoTokens) {
+                    finderInput.dataset.pianoTokens = song.finderPianoTokens;
+                    finderInput.dataset.pianoText = song.finderInput || '';
+                    finderInput.dataset.inputSource = 'piano';
+                }
+            }
+
+            rebuildAll();
+            findBestHarp();
+            initHarpInputMode();
+            setHarpInputTarget('note-input-1');
+            setSongSaveStatus(`„${song.name}“ geladen.`);
+        }
+
+        function deleteSelectedSong() {
+            const select = document.getElementById('saved-song-select');
+            if (!select || !select.value) {
+                setSongSaveStatus('Bitte zuerst eine gespeicherte Melodie auswählen.');
+                return;
+            }
+            const songs = getSavedSongs();
+            const song = songs.find(item => item.id === select.value);
+            if (!song) {
+                setSongSaveStatus('Gespeicherte Melodie wurde nicht gefunden.');
+                updateSavedSongsSelect();
+                return;
+            }
+            if (!confirm(`„${song.name}“ wirklich löschen?`)) {
+                setSongSaveStatus('Löschen abgebrochen.');
+                return;
+            }
+            writeSavedSongs(songs.filter(item => item.id !== song.id));
+            setSongSaveStatus(`„${song.name}“ gelöscht.`);
+        }
+
         function drawHarpMap() {
             const root = document.getElementById('key-select').value;
             const data = getHarpData(root);
@@ -2280,13 +2605,13 @@ E|----------------</textarea>
             let previousMatch = null;
             const lastFreqByNote = {};
 
-            const renderRequest = (request) => {
+            const renderRequest = (request, forcedMatch = null) => {
                 const note = request.note;
                 const direction = request.direction || 'auto';
                 const matches = getMatchesForNote(currentHarp, note);
 
                 if (matches.length > 0) {
-                    const best = chooseDisplayMatch(matches, request, lastHole, lastFreqByNote, previousMatch);
+                    const best = forcedMatch ? applyHarpPositionShift(matches, forcedMatch, harpPositionShift) : chooseDisplayMatch(matches, request, lastHole, lastFreqByNote, previousMatch);
                     lastHole = best.h;
                     previousMatch = best;
                     lastFreqByNote[note] = best.f;
@@ -2341,17 +2666,56 @@ E|----------------</textarea>
                 return;
             }
 
+            const textItems = [];
+            const textRequests = [];
             while (i < text.length) {
                 const c = text[i];
-                if (c === ' ') { container.innerHTML += '<div class="spacer"></div>'; i++; continue; }
+                if (c === ' ') {
+                    textItems.push({ type: 'space' });
+                    i++;
+                    continue;
+                }
+
                 const rep = text.slice(i).match(/^(\d+X)/);
-                if (rep) { container.innerHTML += `<div class="repeat-box" data-type="repeat" data-count="${parseInt(rep[1])}">${rep[1]}</div>`; i += rep[1].length; continue; }
+                if (rep) {
+                    textItems.push({ type: 'repeat', text: rep[1], count: parseInt(rep[1]) });
+                    i += rep[1].length;
+                    continue;
+                }
                 
                 const found = readNoteAt(text, i);
                 if (!found || !found.note) { i++; continue; }
-                renderRequest({ note: found.note, direction: found.direction || 'auto' });
+
+                const lane = getPianoLaneDefaults(found.direction || 'auto');
+                const request = {
+                    note: found.note,
+                    direction: found.direction || 'auto',
+                    targetFreq: getPianoTargetFreq(found.note, lane.octave),
+                    fromPiano: true,
+                    minHole: lane.minHole,
+                    maxHole: lane.maxHole,
+                    preferredHole: lane.preferredHole
+                };
+                textItems.push({ type: 'note', request, noteIndex: textRequests.length });
+                textRequests.push(request);
                 i = found.end;
             }
+
+            // Für normale Buchstabeneingaben wird die komplette Melodie betrachtet.
+            // Dadurch startet die Tab-Erzeugung nicht zu hoch, kann aber bei mehrfach
+            // vorhandenen Tönen gezielt in die passende höhere Lage wechseln.
+            const canUseTextMelodyPath = textRequests.every(request => (request.direction || 'auto') === 'auto');
+            const textMelodyPath = canUseTextMelodyPath ? chooseTextInputMelodyPath(currentHarp, textRequests) : [];
+
+            textItems.forEach(item => {
+                if (item.type === 'space') {
+                    container.innerHTML += '<div class="spacer"></div>';
+                } else if (item.type === 'repeat') {
+                    container.innerHTML += `<div class="repeat-box" data-type="repeat" data-count="${item.count}">${item.text}</div>`;
+                } else if (item.type === 'note') {
+                    renderRequest(item.request, textMelodyPath[item.noteIndex] || null);
+                }
+            });
             syncHarpInputLiveTabs();
         }
 
@@ -2414,7 +2778,7 @@ E|----------------</textarea>
             window.isGlobalPlaying = false;
         }
 
-        window.onload = () => { drawHarpMap(); initHarpInputMode(); updateHarpPositionLabel(); markFinderNotesOnHarp(); updateAudioButton(); };
+        window.onload = () => { drawHarpMap(); initHarpInputMode(); updateHarpPositionLabel(); markFinderNotesOnHarp(); updateAudioButton(); updateSavedSongsSelect(); };
     </script>
 </body>
 </html>
