@@ -726,7 +726,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 216 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 218 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -1803,98 +1803,170 @@ E|----------------`;
             return level * 7;
         }
 
-        function scoreHarpForRequests(key, noteRequests) {
-            const data = getHarpData(key);
-            let score = 0;
-            let laneScore = 0;
-            let possible = noteRequests.length ? noteRequests.length * 100 : 1;
-            let lastHole = 4;
-            let previousMatch = null;
-            let matchedCount = 0;
-            let bendCount = 0;
-            let bendCost = 0;
-            let jumpCost = 0;
-            let hardestBend = 0;
-            const lastFreqByNote = {};
+        function getMelodyTransitionPenalty(previousMatch, match) {
+            if (!previousMatch || !match) return 0;
+            const holeJump = Math.abs(match.h - previousMatch.h);
+            if (holeJump <= 1) return 0;
+            if (holeJump === 2) return 8;
+            if (holeJump === 3) return 28;
+            if (holeJump === 4) return 48;
+            return 75 + ((holeJump - 5) * 12);
+        }
 
-            noteRequests.forEach(request => {
-                const matches = getMatchesForNote(data, request.note);
-                const direction = request.direction || 'auto';
+        function getMelodyCandidatePenalty(match, request) {
+            if (!match) return 999;
+            let penalty = 0;
 
-                if (!matches.length) {
-                    score -= 100;
+            // Bendings sind erlaubt, aber ihre Schwierigkeit zählt deutlich.
+            // Ein einfacher Bend ist leichter als ein Doppel- oder Dreifach-Bend.
+            if (match.t === 'bend') penalty += (match.level || 1) * 12;
+
+            let targetHole = typeof request.preferredHole === 'number' ? request.preferredHole : null;
+            if (typeof request.minHole === 'number' && request.minHole >= 7) targetHole = 8;
+            else if (typeof request.maxHole === 'number' && request.maxHole <= 3) targetHole = 2;
+            else if (typeof request.minHole === 'number' && request.minHole >= 4) targetHole = 6;
+
+            if (targetHole !== null) penalty += Math.abs(match.h - targetHole) * 2;
+            if (typeof request.minHole === 'number' && match.h < request.minHole) penalty += 10 + ((request.minHole - match.h) * 3);
+            if (typeof request.maxHole === 'number' && match.h > request.maxHole) penalty += 10 + ((match.h - request.maxHole) * 3);
+
+            if (match.t !== 'bend') penalty -= 2;
+            return penalty;
+        }
+
+        function getCandidateMatchesForRequest(currentHarp, request) {
+            let matches = getMatchesForNote(currentHarp, request.note);
+            if (!matches.length) return [];
+
+            if (request.fromHarp) {
+                const exact = matches.filter(m => {
+                    const sameHole = typeof request.minHole === 'number' ? m.h === request.minHole : true;
+                    const sameMode = request.harpMode ? m.t === request.harpMode : true;
+                    const sameBend = m.t === 'bend' && typeof request.bendLevel === 'number' ? (m.level || 1) === request.bendLevel : true;
+                    return sameHole && sameMode && sameBend;
+                });
+                if (exact.length) return exact;
+            }
+
+            return matches;
+        }
+
+        function chooseBestMelodyPath(currentHarp, noteRequests) {
+            if (!noteRequests.length) {
+                return { matches: [], allNotesFound: false, playableSequence: false, percent: 0, bendCount: 0, bendCost: 0, hardestBend: 0, jumpCost: 0, laneScore: 0, maxJump: 0, totalPenalty: 0 };
+            }
+
+            let states = [];
+            let allNotesFound = true;
+
+            noteRequests.forEach((request, index) => {
+                const candidates = getCandidateMatchesForRequest(currentHarp, request);
+                if (!candidates.length) {
+                    allNotesFound = false;
+                    states = [];
                     return;
                 }
 
-                const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
-                let best = autoBest;
-                let directionWasPossible = false;
+                const nextStates = [];
+                candidates.forEach(match => {
+                    const candidatePenalty = Math.max(0, getMelodyCandidatePenalty(match, request));
+                    const bendLevel = getBendCost(match);
 
-                if (request.fromGuitar) {
-                    best = chooseBestMatchForGuitar(matches, request, lastHole);
-                    directionWasPossible = typeof request.minHole === 'number' ? best.h >= request.minHole : true;
-                } else if (request.fromPiano) {
-                    best = chooseBestMatchForPiano(matches, request, lastHole, previousMatch);
-                    directionWasPossible = typeof request.minHole === 'number' ? best.h >= request.minHole : true;
-                } else if (direction !== 'auto') {
-                    const referenceFreq = lastFreqByNote[request.note] ?? autoBest.f;
-                    best = chooseBestMatch(matches, lastHole, direction, referenceFreq);
-                    directionWasPossible = direction === 'higher'
-                        ? best.f > referenceFreq + 0.001
-                        : best.f < referenceFreq - 0.001;
-                }
+                    if (index === 0 || !states.length) {
+                        nextStates.push({
+                            match,
+                            path: [match],
+                            totalPenalty: candidatePenalty,
+                            bendCount: bendLevel > 0 ? 1 : 0,
+                            bendCost: bendLevel,
+                            hardestBend: bendLevel,
+                            jumpCost: 0,
+                            maxJump: 0,
+                            laneScore: getLaneTieBreakScore(match, request)
+                        });
+                    } else {
+                        states.forEach(state => {
+                            const holeJump = Math.abs(match.h - state.match.h);
+                            const transitionPenalty = getMelodyTransitionPenalty(state.match, match);
+                            nextStates.push({
+                                match,
+                                path: [...state.path, match],
+                                totalPenalty: state.totalPenalty + candidatePenalty + transitionPenalty,
+                                bendCount: state.bendCount + (bendLevel > 0 ? 1 : 0),
+                                bendCost: state.bendCost + bendLevel,
+                                hardestBend: Math.max(state.hardestBend, bendLevel),
+                                jumpCost: state.jumpCost + transitionPenalty,
+                                maxJump: Math.max(state.maxJump, holeJump),
+                                laneScore: state.laneScore + getLaneTieBreakScore(match, request)
+                            });
+                        });
+                    }
+                });
 
-                if (!best) {
-                    score -= 100;
-                    return;
-                }
-
-                matchedCount++;
-                const bendLevel = getBendCost(best);
-                if (bendLevel > 0) {
-                    bendCount++;
-                    bendCost += bendLevel;
-                    hardestBend = Math.max(hardestBend, bendLevel);
-                }
-
-                const currentJumpCost = getMelodyJumpCost(previousMatch, best);
-                jumpCost += currentJumpCost;
-
-                let noteScore = 100;
-                noteScore -= getMatchDifficultyPenalty(best);
-                noteScore -= currentJumpCost;
-
-                if (direction !== 'auto' && !directionWasPossible) noteScore -= 10;
-
-                score += Math.max(0, noteScore);
-                laneScore += getLaneTieBreakScore(best, request);
-
-                lastHole = best.h;
-                previousMatch = best;
-                lastFreqByNote[request.note] = best.f;
+                states = nextStates
+                    .sort((a, b) =>
+                        a.totalPenalty - b.totalPenalty ||
+                        a.maxJump - b.maxJump ||
+                        a.bendCost - b.bendCost ||
+                        a.jumpCost - b.jumpCost ||
+                        b.laneScore - a.laneScore
+                    )
+                    .slice(0, 40);
             });
 
-            const allNotesFound = matchedCount === noteRequests.length;
-            let percent = allNotesFound ? Math.max(0, Math.min(100, Math.round(score / (noteRequests.length || 1)))) : 0;
+            if (!allNotesFound || !states.length) {
+                return { matches: [], allNotesFound: false, playableSequence: false, percent: 0, bendCount: 0, bendCost: 0, hardestBend: 0, jumpCost: 999, laneScore: 0, maxJump: 99, totalPenalty: 999 };
+            }
 
-            // 100 % bleibt einer wirklich leichten, zusammenhängenden Lösung ohne Bends vorbehalten.
-            if (percent >= 100 && (bendCost > 0 || jumpCost > 0)) percent = 99;
+            const best = states.sort((a, b) =>
+                a.totalPenalty - b.totalPenalty ||
+                a.maxJump - b.maxJump ||
+                a.bendCost - b.bendCost ||
+                a.jumpCost - b.jumpCost ||
+                b.laneScore - a.laneScore
+            )[0];
 
-            const playableSequence = allNotesFound && jumpCost <= Math.max(18, (noteRequests.length - 1) * 14);
+            const avgPenalty = best.totalPenalty / noteRequests.length;
+            let percent = Math.max(0, Math.min(100, Math.round(100 - avgPenalty)));
+            if (percent >= 100 && (best.bendCost > 0 || best.jumpCost > 0 || best.maxJump > 1)) percent = 99;
+
+            // Für einen Vorschlag muss die Melodie in der Reihenfolge zusammenhängend spielbar sein.
+            // Ein einzelner Ton irgendwo auf der Harp reicht nicht mehr aus.
+            const playableSequence = best.maxJump <= 2 && (best.jumpCost / Math.max(1, noteRequests.length - 1)) <= 10;
 
             return {
-                key,
-                score,
-                laneScore,
-                possible,
-                percent,
-                bendCount,
-                bendCost,
-                hardestBend,
-                jumpCost,
-                matchedCount,
+                matches: best.path,
                 allNotesFound,
-                playableSequence
+                playableSequence,
+                percent,
+                bendCount: best.bendCount,
+                bendCost: best.bendCost,
+                hardestBend: best.hardestBend,
+                jumpCost: best.jumpCost,
+                laneScore: best.laneScore,
+                maxJump: best.maxJump,
+                totalPenalty: best.totalPenalty
+            };
+        }
+
+        function scoreHarpForRequests(key, noteRequests) {
+            const data = getHarpData(key);
+            const path = chooseBestMelodyPath(data, noteRequests);
+            return {
+                key,
+                score: Math.max(0, (noteRequests.length || 1) * 100 - path.totalPenalty),
+                laneScore: path.laneScore,
+                possible: noteRequests.length ? noteRequests.length * 100 : 1,
+                percent: path.percent,
+                bendCount: path.bendCount,
+                bendCost: path.bendCost,
+                hardestBend: path.hardestBend,
+                jumpCost: path.jumpCost,
+                maxJump: path.maxJump,
+                matchedCount: path.matches.length,
+                allNotesFound: path.allNotesFound,
+                playableSequence: path.playableSequence,
+                melodyPath: path.matches
             };
         }
 
@@ -2018,20 +2090,13 @@ E|----------------`;
 
             const root = document.getElementById('key-select').value;
             const currentHarp = getHarpData(root);
-            let lastHole = 4;
-            let previousMatch = null;
-            const lastFreqByNote = {};
+            const melodyPath = chooseBestMelodyPath(currentHarp, requests).matches;
 
-            requests.forEach(request => {
+            melodyPath.forEach((match, index) => {
+                const request = requests[index];
                 const matches = getMatchesForNote(currentHarp, request.note);
-                if (!matches.length) return;
-
-                const best = chooseDisplayMatch(matches, request, lastHole, lastFreqByNote, previousMatch);
+                const best = harpPositionShift && !request.fromHarp ? applyHarpPositionShift(matches, match, harpPositionShift) : match;
                 if (!best) return;
-
-                lastHole = best.h;
-                previousMatch = best;
-                lastFreqByNote[request.note] = best.f;
 
                 const hole = document.getElementById(`vis-hole-${best.h}`);
                 const kind = best.t === 'b' ? 'blow' : best.t === 'd' ? 'draw' : 'bend';
@@ -2057,8 +2122,13 @@ E|----------------`;
             const noteRequests = getNoteRequestsForInput(finderInput);
 
             if (noteRequests.length === 0) {
+                const keySelect = document.getElementById('key-select');
+                if (keySelect && keySelect.value !== 'C') keySelect.value = 'C';
+                drawHarpMap();
+                document.querySelectorAll('.input-field').forEach((input, i) => updateView(input, i + 1));
                 clearFinderMarks();
                 resultsDiv.innerHTML = '<span class="text-[10px] font-bold text-pink-400 italic">Hier erscheinen Vorschläge...</span>';
+                updateHarpInputModeUI();
                 return;
             }
 
@@ -2079,6 +2149,14 @@ E|----------------`;
                 );
 
             const maxPercent = rankings[0].percent;
+            const bestHarpKey = rankings[0].key;
+            const keySelect = document.getElementById('key-select');
+            if (keySelect && keySelect.value !== bestHarpKey) {
+                keySelect.value = bestHarpKey;
+                drawHarpMap();
+                document.querySelectorAll('.input-field').forEach((input, i) => updateView(input, i + 1));
+                updateHarpInputModeUI();
+            }
 
             resultsDiv.innerHTML = rankings.slice(0, 4).map(r => `
                 <div class="finder-result ${r.percent === maxPercent && r.percent > 0 ? 'best' : ''}" onclick="selectKey('${r.key}')">
