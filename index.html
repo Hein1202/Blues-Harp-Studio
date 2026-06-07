@@ -726,7 +726,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 215 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 216 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -1778,21 +1778,53 @@ E|----------------`;
             return laneScore;
         }
 
+        function getBendCost(match) {
+            if (!match || match.t !== 'bend') return 0;
+            return match.level || 1;
+        }
+
+        function getMelodyJumpCost(previousMatch, match) {
+            if (!previousMatch || !match) return 0;
+            const holeJump = Math.abs(match.h - previousMatch.h);
+            if (holeJump <= 2) return 0;
+            if (holeJump === 3) return 4;
+            if (holeJump === 4) return 8;
+            if (holeJump === 5) return 14;
+            return 22 + (holeJump - 6) * 4;
+        }
+
+        function getMatchDifficultyPenalty(match) {
+            if (!match) return 100;
+            if (match.t !== 'bend') return 0;
+            const level = match.level || 1;
+            // 1 Bend ist deutlich leichter als 2 oder 3 Bends.
+            // Deshalb wird nicht nur gezählt, ob ein Bend vorkommt,
+            // sondern wie tief dieser Bend ist.
+            return level * 7;
+        }
+
         function scoreHarpForRequests(key, noteRequests) {
             const data = getHarpData(key);
             let score = 0;
             let laneScore = 0;
-            let possible = 0;
+            let possible = noteRequests.length ? noteRequests.length * 100 : 1;
             let lastHole = 4;
             let previousMatch = null;
+            let matchedCount = 0;
+            let bendCount = 0;
+            let bendCost = 0;
+            let jumpCost = 0;
+            let hardestBend = 0;
             const lastFreqByNote = {};
 
             noteRequests.forEach(request => {
                 const matches = getMatchesForNote(data, request.note);
                 const direction = request.direction || 'auto';
-                possible += direction === 'auto' ? 2 : 3;
 
-                if (!matches.length) return;
+                if (!matches.length) {
+                    score -= 100;
+                    return;
+                }
 
                 const autoBest = chooseBestMatch(matches, lastHole, 'auto', null);
                 let best = autoBest;
@@ -1812,16 +1844,58 @@ E|----------------`;
                         : best.f < referenceFreq - 0.001;
                 }
 
-                score += scoreMatch(best);
+                if (!best) {
+                    score -= 100;
+                    return;
+                }
+
+                matchedCount++;
+                const bendLevel = getBendCost(best);
+                if (bendLevel > 0) {
+                    bendCount++;
+                    bendCost += bendLevel;
+                    hardestBend = Math.max(hardestBend, bendLevel);
+                }
+
+                const currentJumpCost = getMelodyJumpCost(previousMatch, best);
+                jumpCost += currentJumpCost;
+
+                let noteScore = 100;
+                noteScore -= getMatchDifficultyPenalty(best);
+                noteScore -= currentJumpCost;
+
+                if (direction !== 'auto' && !directionWasPossible) noteScore -= 10;
+
+                score += Math.max(0, noteScore);
                 laneScore += getLaneTieBreakScore(best, request);
-                if (direction !== 'auto' && directionWasPossible) score += 1;
 
                 lastHole = best.h;
                 previousMatch = best;
                 lastFreqByNote[request.note] = best.f;
             });
 
-            return { key, score, laneScore, possible: possible || 1 };
+            const allNotesFound = matchedCount === noteRequests.length;
+            let percent = allNotesFound ? Math.max(0, Math.min(100, Math.round(score / (noteRequests.length || 1)))) : 0;
+
+            // 100 % bleibt einer wirklich leichten, zusammenhängenden Lösung ohne Bends vorbehalten.
+            if (percent >= 100 && (bendCost > 0 || jumpCost > 0)) percent = 99;
+
+            const playableSequence = allNotesFound && jumpCost <= Math.max(18, (noteRequests.length - 1) * 14);
+
+            return {
+                key,
+                score,
+                laneScore,
+                possible,
+                percent,
+                bendCount,
+                bendCost,
+                hardestBend,
+                jumpCost,
+                matchedCount,
+                allNotesFound,
+                playableSequence
+            };
         }
 
         function updateAudioStatus(message) {
@@ -1988,18 +2062,28 @@ E|----------------`;
                 return;
             }
 
-            // Scores berechnen: normale Töne zählen als Blow/Draw stärker als Bends.
-            // Bei + und - bekommt eine Harp zusätzlich Punkte, wenn wirklich eine höhere/tiefere Lage vorhanden ist.
-            const rankings = keysToTest
+            // Harp-Vorschläge praxisnah bewerten:
+            // 100 % gibt es nur ohne Bends und ohne störende Sprünge.
+            // Bends sind erlaubt, werden aber je nach Tiefe gewichtet.
+            // Zusätzlich zählt, ob die Melodie in einer zusammenhängenden Reihenfolge spielbar bleibt.
+            const scoredHarps = keysToTest
                 .map(key => scoreHarpForRequests(key, noteRequests))
-                .sort((a, b) => b.score - a.score || b.laneScore - a.laneScore);
+                .filter(r => r.allNotesFound && r.playableSequence);
 
-            const maxScore = rankings[0].score;
+            const rankings = (scoredHarps.length ? scoredHarps : keysToTest.map(key => scoreHarpForRequests(key, noteRequests)))
+                .sort((a, b) =>
+                    b.percent - a.percent ||
+                    a.bendCost - b.bendCost ||
+                    a.jumpCost - b.jumpCost ||
+                    b.laneScore - a.laneScore
+                );
+
+            const maxPercent = rankings[0].percent;
 
             resultsDiv.innerHTML = rankings.slice(0, 4).map(r => `
-                <div class="finder-result ${r.score === maxScore && r.score > 0 ? 'best' : ''}" onclick="selectKey('${r.key}')">
+                <div class="finder-result ${r.percent === maxPercent && r.percent > 0 ? 'best' : ''}" onclick="selectKey('${r.key}')">
                     <span class="text-xs mr-2 font-black">${r.key}</span>
-                    <span class="text-[9px] opacity-70">${Math.round((r.score / r.possible) * 100)}% Match</span>
+                    <span class="text-[9px] opacity-70">${r.percent}% Match</span>
                 </div>
             `).join('');
 
