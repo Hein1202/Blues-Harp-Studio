@@ -134,6 +134,23 @@
         }
 
         .spacer { width: 3px; height: 50px; background: #cbd5e1; margin: 0 20px; display: inline-block; align-self: center; border-radius: 4px; }
+        .tie-arc {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            align-self: flex-start;
+            width: 0;
+            min-width: 0;
+            height: 0;
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.65rem;
+            font-weight: 900;
+            line-height: 1;
+            overflow: visible;
+            pointer-events: none;
+            transform: translate(-0.15rem, 4.15rem);
+        }
         .repeat-box { font-weight: 900; color: #92400e; font-size: 1.3rem; margin: 0 12px; padding: 8px 14px; border: 3px solid #f59e0b; border-radius: 10px; background: #fffbeb; }
 
         .controls-bar { 
@@ -801,7 +818,7 @@
                 print-color-adjust: exact !important;
                 color-adjust: exact !important;
             }
-            .display, .tab-node, .tab-node span, .arrow, .blow, .draw, .bend {
+            .display, .tab-node, .tab-node span, .arrow, .tie-arc, .blow, .draw, .bend {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
                 color-adjust: exact !important;
@@ -821,7 +838,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 229 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 237 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -880,6 +897,7 @@ E|----------------</textarea>
         <div class="harp-input-controls" aria-label="Harp-Ansicht als Eingabe nutzen">
             <button type="button" id="harp-input-toggle" class="harp-input-btn" onclick="toggleHarpInputMode()">Harp-Eingabe starten</button>
             <button type="button" class="harp-input-btn" onclick="insertHarpInputSpace()">Abstand einfügen</button>
+            <button type="button" class="harp-input-btn" onclick="insertHarpInputTie()">Bindung einfügen</button>
             <button type="button" class="harp-input-btn" onclick="deleteLastHarpInputNote()">Letzten Tab löschen</button>
             <span id="harp-input-status" class="harp-input-status">Aus</span>
             <span id="harp-input-target" class="harp-input-target">Ziel: Zeile 1</span>
@@ -896,6 +914,7 @@ E|----------------</textarea>
                     <option value="note-input-1">Zeile 1</option>
                 </select>
                 <button type="button" class="harp-input-btn" onclick="insertHarpInputSpace()">Abstand einfügen</button>
+                <button type="button" class="harp-input-btn" onclick="insertHarpInputTie()">Bindung einfügen</button>
                 <button type="button" class="harp-input-btn" onclick="addRowFromHarpInput()">Neue Zeile beginnen</button>
             </div>
         </div>
@@ -967,7 +986,7 @@ E|----------------</textarea>
                 </div>
                 <div class="input-help-item">
                     <span class="input-help-label">Abstand</span>
-                    Mehrere Leerzeichen erzeugen eine optische Trennung.
+                    Mehrere Leerzeichen erzeugen eine optische Trennung. Mit „Bindung einfügen“ kann zusätzlich ein enger Übergang zwischen zwei Tabs markiert werden.
                 </div>
                 <div class="input-help-item">
                     <span class="input-help-label">Wiederholung</span>
@@ -1013,6 +1032,7 @@ E|----------------</textarea>
             <div class="mb-6">
                 <input type="text" id="note-input-1" class="input-field no-print" placeholder="Notennamen eingeben (z.B. C D E F G, D+ höher, D- tiefer)..." oninput="updateView(this, 1)">
                 <div class="input-clear-actions no-print">
+                    <button type="button" class="input-clear-btn" onclick="insertTieIntoTextInput('note-input-1')">Bindung einfügen</button>
                     <button type="button" class="input-clear-btn" onclick="clearInputField('note-input-1')">Eingabe leeren</button>
                 </div>
                 <details class="guitar-tab-box no-print">
@@ -1174,12 +1194,38 @@ E|----------------</textarea>
 
         function tokenTextFromPianoToken(token) {
             if (token.type === 'space') return '   ';
+            if (token.type === 'tie') return '⌣';
             if (token.type === 'repeat') return token.text || '';
             return `${token.note}${token.suffix || ''}`;
         }
 
+        function buildInputTextFromTokens(tokens) {
+            let text = '';
+            tokens.forEach(token => {
+                const part = tokenTextFromPianoToken(token);
+                if (!part) return;
+
+                // Bindungen sollen direkt zwischen zwei Noten stehen.
+                // Dadurch entsteht kein zusätzliches Leerzeichen, das in der Anzeige
+                // als optische Trennungslinie interpretiert würde.
+                if (token.type === 'tie') {
+                    text = text.replace(/\s+$/g, '') + part;
+                    return;
+                }
+
+                if (text.endsWith('⌒') || text.endsWith('⌣') || text.endsWith('~')) {
+                    text += part;
+                    return;
+                }
+
+                if (text && !/\s$/.test(text)) text += ' ';
+                text += part;
+            });
+            return text.replace(/\s+$/g, '');
+        }
+
         function rebuildInputFromPianoTokens(input, tokens, shouldFocus = true) {
-            input.value = tokens.map(tokenTextFromPianoToken).join(' ').replace(/\s+$/g, '');
+            input.value = buildInputTextFromTokens(tokens);
             const cursor = input.value.length;
             if (shouldFocus) {
                 input.focus({ preventScroll: true });
@@ -1250,6 +1296,32 @@ E|----------------</textarea>
             const cursor = (before + insertValue).length;
             input.focus();
             input.setSelectionRange(cursor, cursor);
+            triggerInputUpdate(input);
+        }
+
+        function insertTieIntoTextInput(targetId) {
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            const tokens = getPianoTokens(input);
+            if (tokens) {
+                const hasPreviousNote = tokens.some(token => token.type === 'note');
+                const lastToken = tokens[tokens.length - 1];
+                if (!hasPreviousNote || (lastToken && lastToken.type === 'tie')) return;
+                tokens.push({ type: 'tie' });
+                rebuildInputFromPianoTokens(input, tokens);
+                return;
+            }
+
+            const start = input.selectionStart ?? input.value.length;
+            const end = input.selectionEnd ?? input.value.length;
+            const before = input.value.slice(0, start).replace(/\s+$/g, '');
+            const after = input.value.slice(end).replace(/^\s+/g, '');
+            if (!before || before.endsWith('~') || before.endsWith('⌒') || before.endsWith('⌣')) return;
+            input.value = before + '~' + after;
+            const cursor = before.length + 1;
+            input.focus();
+            input.setSelectionRange(cursor, cursor);
+            clearPianoTokens(input);
             triggerInputUpdate(input);
         }
 
@@ -1894,6 +1966,21 @@ E|----------------`;
             if (!input) return;
             const tokens = createTokensFromCurrentInput(input);
             tokens.push({ type: 'space' });
+            input.dataset.inputSource = 'harp';
+            rebuildInputFromPianoTokens(input, tokens, false);
+            const row = input.closest('.line-row');
+            if (row) updateView(input, parseInt(row.id.replace('row-', ''), 10));
+            updateHarpInputModeUI();
+        }
+
+        function insertHarpInputTie() {
+            const input = document.getElementById(activeHarpInputTargetId) || document.getElementById('note-input-1');
+            if (!input) return;
+            const tokens = createTokensFromCurrentInput(input);
+            const hasPreviousNote = tokens.some(token => token.type === 'note');
+            const lastToken = tokens[tokens.length - 1];
+            if (!hasPreviousNote || (lastToken && lastToken.type === 'tie')) return;
+            tokens.push({ type: 'tie' });
             input.dataset.inputSource = 'harp';
             rebuildInputFromPianoTokens(input, tokens, false);
             const row = input.closest('.line-row');
@@ -2735,6 +2822,7 @@ E|----------------`;
                 <div class="mb-6">
                     <input type="text" id="note-input-${lineIdx}" class="input-field no-print" placeholder="... (D+ höher, D- tiefer)" oninput="updateView(this, ${lineIdx})">
                     <div class="input-clear-actions no-print">
+                        <button type="button" class="input-clear-btn" onclick="insertTieIntoTextInput('note-input-${lineIdx}')">Bindung einfügen</button>
                         <button type="button" class="input-clear-btn" onclick="clearInputField('note-input-${lineIdx}')">Eingabe leeren</button>
                     </div>
                     <details class="guitar-tab-box no-print">
@@ -2831,6 +2919,8 @@ E|----------------</textarea>
                 pianoTokens.forEach(token => {
                     if (token.type === 'space') {
                         container.innerHTML += '<div class="spacer"></div>';
+                    } else if (token.type === 'tie') {
+                        container.innerHTML += '<div class="tie-arc" title="Bindung: eng zusammen spielen">⌣</div>'; 
                     } else if (token.type === 'note') {
                         renderRequest({
                             note: token.note,
@@ -2857,6 +2947,12 @@ E|----------------</textarea>
                 const c = text[i];
                 if (c === ' ') {
                     textItems.push({ type: 'space' });
+                    i++;
+                    continue;
+                }
+
+                if (c === '⌣' || c === '⌒' || c === '~') {
+                    textItems.push({ type: 'tie' });
                     i++;
                     continue;
                 }
@@ -2895,6 +2991,8 @@ E|----------------</textarea>
             textItems.forEach(item => {
                 if (item.type === 'space') {
                     container.innerHTML += '<div class="spacer"></div>';
+                } else if (item.type === 'tie') {
+                    container.innerHTML += '<div class="tie-arc" title="Bindung: eng zusammen spielen">⌣</div>'; 
                 } else if (item.type === 'repeat') {
                     container.innerHTML += `<div class="repeat-box" data-type="repeat" data-count="${item.count}">${item.text}</div>`;
                 } else if (item.type === 'note') {
