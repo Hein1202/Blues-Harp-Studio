@@ -821,7 +821,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 227 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 229 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -879,6 +879,7 @@ E|----------------</textarea>
         </div>
         <div class="harp-input-controls" aria-label="Harp-Ansicht als Eingabe nutzen">
             <button type="button" id="harp-input-toggle" class="harp-input-btn" onclick="toggleHarpInputMode()">Harp-Eingabe starten</button>
+            <button type="button" class="harp-input-btn" onclick="insertHarpInputSpace()">Abstand einfügen</button>
             <button type="button" class="harp-input-btn" onclick="deleteLastHarpInputNote()">Letzten Tab löschen</button>
             <span id="harp-input-status" class="harp-input-status">Aus</span>
             <span id="harp-input-target" class="harp-input-target">Ziel: Zeile 1</span>
@@ -894,6 +895,7 @@ E|----------------</textarea>
                 <select id="harp-input-target-select" class="harp-input-target-select" onchange="setHarpInputTarget(this.value)">
                     <option value="note-input-1">Zeile 1</option>
                 </select>
+                <button type="button" class="harp-input-btn" onclick="insertHarpInputSpace()">Abstand einfügen</button>
                 <button type="button" class="harp-input-btn" onclick="addRowFromHarpInput()">Neue Zeile beginnen</button>
             </div>
         </div>
@@ -1882,6 +1884,18 @@ E|----------------`;
             const input = document.getElementById(activeHarpInputTargetId) || document.getElementById('note-input-1');
             if (!input) return;
             deleteLastPianoToken(input.id);
+            const row = input.closest('.line-row');
+            if (row) updateView(input, parseInt(row.id.replace('row-', ''), 10));
+            updateHarpInputModeUI();
+        }
+
+        function insertHarpInputSpace() {
+            const input = document.getElementById(activeHarpInputTargetId) || document.getElementById('note-input-1');
+            if (!input) return;
+            const tokens = createTokensFromCurrentInput(input);
+            tokens.push({ type: 'space' });
+            input.dataset.inputSource = 'harp';
+            rebuildInputFromPianoTokens(input, tokens, false);
             const row = input.closest('.line-row');
             if (row) updateView(input, parseInt(row.id.replace('row-', ''), 10));
             updateHarpInputModeUI();
