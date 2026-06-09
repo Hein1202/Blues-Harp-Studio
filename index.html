@@ -838,7 +838,7 @@
             <h1 class="text-xs uppercase tracking-[0.4em] font-black text-slate-500">Blues Harp Studio Pro</h1>
         </div>
         <div class="flex gap-4 items-center">
-            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 237 · 06.26</span>
+            <span class="text-xs font-black text-slate-600 bg-slate-100 px-4 py-2 border-2 border-slate-200 rounded-xl tracking-widest uppercase">Version 244 · 06.26</span>
             <span id="current-key-display" class="text-xs font-black text-blue-800 bg-blue-100 px-4 py-2 border-2 border-blue-200 rounded-xl tracking-widest uppercase">C-DUR</span>
             <button onclick="window.print()" class="p-2.5 text-slate-500 hover:text-slate-900 transition-colors border-2 border-slate-200 hover:border-slate-400 rounded-xl bg-white shadow-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2-0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -3002,18 +3002,105 @@ E|----------------</textarea>
             syncHarpInputLiveTabs();
         }
 
-        async function playNote(freq, duration) {
+        function createBreathNoise(duration, startTime, amount = 0.012, destination = null) {
+            if (!audioCtx || !destination) return;
+            const bufferSize = Math.max(1, Math.floor(audioCtx.sampleRate * Math.max(0.05, duration)));
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) output[i] = (Math.random() * 2 - 1) * 0.35;
+
+            const noise = audioCtx.createBufferSource();
+            const noiseFilter = audioCtx.createBiquadFilter();
+            const noiseGain = audioCtx.createGain();
+            noise.buffer = noiseBuffer;
+            noiseFilter.type = 'highpass';
+            noiseFilter.frequency.setValueAtTime(1200, startTime);
+            noiseGain.gain.setValueAtTime(0.0001, startTime);
+            noiseGain.gain.linearRampToValueAtTime(amount, startTime + 0.02);
+            noiseGain.gain.linearRampToValueAtTime(0.0001, startTime + Math.max(0.06, duration - 0.03));
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(destination);
+            noise.start(startTime);
+            noise.stop(startTime + duration + 0.04);
+        }
+
+        async function playNote(freq, duration, options = {}) {
             const ready = await ensureAudioReady(false);
-            if (!ready) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + duration);
+            if (!ready || !freq || !isFinite(freq)) return;
+
+            const startTime = audioCtx.currentTime + 0.01;
+            const isTie = !!options.tie;
+            const isBend = options.mode !== 'b' && options.mode !== 'd';
+            const targetFreq = Math.max(30, freq);
+            // Bindungen sollen rhythmisch enger wirken, aber nicht wie ein Doppelton
+            // oder ein starkes Gleiten zwischen zwei Tönen. Deshalb startet auch
+            // der gebundene Folgeton sauber auf seiner eigenen Frequenz.
+            const fromFreq = targetFreq;
+            const attack = isTie ? 0.014 : 0.035;
+            const release = isTie ? 0.03 : 0.06;
+            const endTime = startTime + Math.max(0.08, duration);
+
+            // Zuverlässige Grundstruktur wie in der alten hörbaren Version,
+            // erweitert um leichte Obertöne, Filter und Vibrato.
+            const master = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            const oscMain = audioCtx.createOscillator();
+            const oscWarm = audioCtx.createOscillator();
+            const gainMain = audioCtx.createGain();
+            const gainWarm = audioCtx.createGain();
+            const vibrato = audioCtx.createOscillator();
+            const vibratoGain = audioCtx.createGain();
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(isBend ? 2400 : 3000, startTime);
+            filter.Q.setValueAtTime(0.9, startTime);
+
+            oscMain.type = 'triangle';
+            oscWarm.type = 'sawtooth';
+            gainMain.gain.setValueAtTime(0.95, startTime);
+            gainWarm.gain.setValueAtTime(isBend ? 0.16 : 0.11, startTime);
+
+            master.gain.setValueAtTime(0.0001, startTime);
+            // Der zweite Ton einer Bindung bekommt einen deutlich kräftigeren Einsatz
+            // und eine leicht angehobene Haltephase, damit er nicht leiser wirkt.
+            master.gain.linearRampToValueAtTime(isTie ? 0.34 : 0.28, startTime + attack);
+            master.gain.linearRampToValueAtTime(isTie ? 0.275 : 0.22, Math.max(startTime + attack + 0.02, endTime - release));
+            master.gain.linearRampToValueAtTime(0.0001, endTime);
+
+            vibrato.type = 'sine';
+            vibrato.frequency.setValueAtTime(isTie ? 4.0 : 5.2, startTime);
+            vibratoGain.gain.setValueAtTime(isTie ? 2.0 : 3.0, startTime);
+
+            [oscMain, oscWarm].forEach((osc, index) => {
+                const detune = index === 0 ? 0 : 4;
+                osc.frequency.setValueAtTime(fromFreq, startTime);
+                if (Math.abs(fromFreq - targetFreq) > 0.01) {
+                    osc.frequency.linearRampToValueAtTime(targetFreq, startTime + (isTie ? 0.16 : 0.09));
+                } else if (isBend) {
+                    osc.frequency.setValueAtTime(targetFreq * 0.992, startTime);
+                    osc.frequency.linearRampToValueAtTime(targetFreq, startTime + 0.07);
+                }
+                osc.detune.setValueAtTime(detune, startTime);
+                vibratoGain.connect(osc.detune);
+            });
+
+            oscMain.connect(gainMain);
+            oscWarm.connect(gainWarm);
+            gainMain.connect(filter);
+            gainWarm.connect(filter);
+            filter.connect(master);
+            master.connect(audioCtx.destination);
+
+            vibrato.connect(vibratoGain);
+            vibrato.start(startTime);
+            oscMain.start(startTime);
+            oscWarm.start(startTime);
+            createBreathNoise(Math.max(0.08, duration), startTime, isTie ? 0.010 : 0.011, master);
+
+            oscMain.stop(endTime + 0.04);
+            oscWarm.stop(endTime + 0.04);
+            vibrato.stop(endTime + 0.04);
         }
 
         async function playRow(id) {
@@ -3024,26 +3111,65 @@ E|----------------</textarea>
             row.classList.add('active-row');
             let sequence = [];
             let buffer = [];
+            let pendingTie = false;
             
             elements.forEach(el => {
-                if (el.dataset.type === 'note') { buffer.push(el); sequence.push(el); }
-                else if (el.dataset.type === 'repeat') { for(let r=1; r < parseInt(el.dataset.count); r++) sequence.push(...buffer); sequence.push(el); buffer = []; }
+                if (el.dataset.type === 'note') {
+                    const item = { type: 'note', el, tieFromPrevious: pendingTie, tieToNext: false };
+                    buffer.push(item);
+                    sequence.push(item);
+                    pendingTie = false;
+                } else if (el.classList.contains('tie-arc')) {
+                    // Die Bindung gehört akustisch zwischen den vorherigen und den nächsten Tab.
+                    // Deshalb wird die Pause NACH dem vorherigen Ton verkürzt, nicht erst nach dem nächsten Ton.
+                    const previousNote = [...sequence].reverse().find(item => item.type === 'note');
+                    if (previousNote) previousNote.tieToNext = true;
+                    pendingTie = true;
+                } else if (el.dataset.type === 'repeat') {
+                    for (let r = 1; r < parseInt(el.dataset.count); r++) {
+                        sequence.push(...buffer.map(item => ({ ...item })));
+                    }
+                    sequence.push({ type: 'repeat', el });
+                    buffer = [];
+                    pendingTie = false;
+                } else if (el.classList.contains('spacer')) {
+                    sequence.push({ type: 'pause', duration: speed * 0.75 });
+                    pendingTie = false;
+                }
             });
 
-            for (let el of sequence) {
-                if (el.dataset.type === 'note') {
+            let previousFreq = null;
+            for (let item of sequence) {
+                if (item.type === 'note') {
+                    const el = item.el;
                     const holeNum = el.dataset.hole;
                     const mode = el.dataset.mode;
+                    const freq = parseFloat(el.dataset.freq);
                     const activeClass = el.dataset.activeClass || (mode === 'b' ? 'active-blow' : mode === 'd' ? 'active-draw' : 'active-bend');
                     const visHole = document.getElementById(`vis-hole-${holeNum}`);
+                    const tiedFromPrevious = !!item.tieFromPrevious;
+                    const tiedToNext = !!item.tieToNext;
                     el.classList.add('playing');
                     if (visHole) visHole.classList.add(activeClass);
-                    await playNote(parseFloat(el.dataset.freq), speed/1000*1.5);
-                    await new Promise(r => setTimeout(r, speed));
+                    const tieDelayMs = Math.max(170, speed * 0.48);
+                    const noteDuration = tiedToNext
+                        ? Math.max(0.12, (tieDelayMs / 1000) - 0.035)
+                        : speed / 1000 * (tiedFromPrevious ? 1.22 : 1.45);
+                    await playNote(freq, noteDuration, {
+                        tie: tiedFromPrevious,
+                        fromFreq: previousFreq,
+                        mode
+                    });
+                    await new Promise(r => setTimeout(r, tiedToNext ? tieDelayMs : speed));
                     el.classList.remove('playing');
                     if (visHole) visHole.classList.remove(activeClass);
+                    previousFreq = freq;
+                } else if (item.type === 'pause') {
+                    await new Promise(r => setTimeout(r, item.duration));
+                    previousFreq = null;
                 } else {
-                    await new Promise(r => setTimeout(r, speed/2));
+                    await new Promise(r => setTimeout(r, speed / 2));
+                    previousFreq = null;
                 }
             }
             row.classList.remove('active-row');
